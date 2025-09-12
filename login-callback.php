@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/lang.php';
+require_once __DIR__ . '/config/BanChecker.php';
 $default_lang = 'zh-HK';
 if (isset($_GET['lang']) && in_array($_GET['lang'], ['zh-HK', 'en'])) {
     $current_lang = $_GET['lang'];
@@ -102,6 +103,16 @@ if (in_array($email, $allowed_emails)) {
 
 if (!$valid) {
     show_error($t['error_invalid_email'], $email, $username, $email);
+}
+
+// 检查用户是否被封禁
+$banChecker = new BanChecker($pdo, $current_lang, $t);
+$ban_info = $banChecker->checkUserBan($email);
+
+if ($ban_info) {
+    // 用户被封禁，记录尝试登录日志并显示封禁页面
+    log_attempt($username, $email, $ip, 'banned', '用户被封禁', $email);
+    $banChecker->showBanPage($ban_info);
 }
 
 // 登录成功日志

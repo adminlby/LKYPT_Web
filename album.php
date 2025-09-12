@@ -1,23 +1,6 @@
 <?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
-    exit;
-}
-
-// 多语言支持
-require_once __DIR__ . '/config/config.php';
-require_once __DIR__ . '/config/lang.php';
-$default_lang = 'zh-HK';
-if (isset($_GET['lang']) && in_array($_GET['lang'], ['zh-HK', 'en'])) {
-    $current_lang = $_GET['lang'];
-    setcookie('site_lang', $current_lang, time()+3600*24*30, '/');
-} elseif (isset($_COOKIE['site_lang']) && in_array($_COOKIE['site_lang'], ['zh-HK', 'en'])) {
-    $current_lang = $_COOKIE['site_lang'];
-} else {
-    $current_lang = $default_lang;
-}
-$t = $langs[$current_lang];
+// 使用页面保护中间件（包含登录检查和封禁检查）
+require_once __DIR__ . '/config/page_protection.php';
 
 // 获取相册和照片数据
 $albums = [];
