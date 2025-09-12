@@ -264,7 +264,7 @@ $langs = [
     'lang_tech' => '支援繁體中文和英文雙語界面，滿足不同用戶的語言需求',
     'contact_title' => '聯絡我們',
     'contact_content' => '如果您對我們的攝影隊或網站有任何疑問或建議，歡迎透過以下方式與我們聯絡。我們非常樂意聽取您的意見，並持續改進我們的服務。',
-    'contact_email' => '聯絡電郵：photography@lky.edu.hk',
+    'contact_email' => '聯絡電郵：liub6696@gmail.com',
     'footer_text' => '© 2024 聖公會梁季彜中學攝影隊 版權所有',
     // 網站說明頁面
     'help_title' => '網站說明',
@@ -339,8 +339,9 @@ $langs = [
     'agreement_scroll_indicator' => '請滾動閱讀完整內容',
     'agreement_scroll_status_reading' => '請滾動至內容底部以啟用同意按鈕',
     'agreement_scroll_status_completed' => '✓ 已閱讀完整內容，可以點擊同意',
-    'agreement_btn_later' => '稍後閱讀',
+    'agreement_btn_later' => '拒絕並退出',
     'agreement_btn_agree' => '我已閱讀並同意',
+    'agreement_decline_confirm' => '您確定要拒絕協議嗎？這將會退出登錄並返回首頁。',
     'agreement_success_message' => '感謝您的確認，您現在可以正常使用系統',
     ],
     'en' => [
@@ -608,7 +609,7 @@ $langs = [
     'lang_tech' => 'Supports Traditional Chinese and English bilingual interface, meeting different users\' language needs',
     'contact_title' => 'Contact Us',
     'contact_content' => 'If you have any questions or suggestions about our photography team or website, please feel free to contact us through the following methods. We are very happy to hear your opinions and continuously improve our services.',
-    'contact_email' => 'Contact Email: photography@lky.edu.hk',
+    'contact_email' => 'Contact Email: liub6696@gmail.com',
     'footer_text' => '© 2024 S.K.H. Leung Kwai Yee Secondary School Photography Team. All rights reserved.',
     // Help Page
     'help_title' => 'Help & Information',
@@ -674,8 +675,9 @@ $langs = [
     'agreement_scroll_indicator' => 'Please scroll to read the complete content',
     'agreement_scroll_status_reading' => 'Please scroll to the bottom to enable the agree button',
     'agreement_scroll_status_completed' => '✓ Read complete content, you can click agree',
-    'agreement_btn_later' => 'Read Later',
+    'agreement_btn_later' => 'Decline & Logout',
     'agreement_btn_agree' => 'I have read and agree',
+    'agreement_decline_confirm' => 'Are you sure you want to decline the agreement? This will logout and return to the homepage.',
     'agreement_success_message' => 'Thank you for your confirmation, you can now use the system normally',
     ]
 ];

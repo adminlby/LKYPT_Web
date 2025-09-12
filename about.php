@@ -444,15 +444,15 @@
                         <div class="stat-label"><?php echo $t['founded_year']; ?></div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number">5+</div>
+                        <div class="stat-number">15+</div>
                         <div class="stat-label"><?php echo $t['active_members']; ?></div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number">500+</div>
+                        <div class="stat-number">4500+</div>
                         <div class="stat-label"><?php echo $t['photos_captured']; ?></div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number">20+</div>
+                        <div class="stat-number">80+</div>
                         <div class="stat-label"><?php echo $t['events_covered']; ?></div>
                     </div>
                 </div>

@@ -205,12 +205,12 @@
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background: #dc3545;
             color: white;
         }
 
         .btn-secondary:hover {
-            background: #5a6268;
+            background: #c82333;
             transform: translateY(-1px);
         }
 
@@ -339,6 +339,53 @@ function initAgreementModal() {
     if (scrollContainer) {
         scrollContainer.addEventListener('scroll', checkScrollPosition);
     }
+    
+    // 防止通过ESC键关闭弹窗
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && agreementModal && agreementModal.classList.contains('show')) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    });
+    
+    // 防止点击背景关闭弹窗
+    if (agreementModal) {
+        agreementModal.addEventListener('click', function(event) {
+            if (event.target === agreementModal) {
+                event.preventDefault();
+                event.stopPropagation();
+                // 可以添加提示信息
+                showTempMessage('请阅读协议内容并做出选择');
+            }
+        });
+    }
+}
+
+// 显示临时提示信息
+function showTempMessage(message) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 10002;
+        font-family: inherit;
+        font-size: 14px;
+        border: 1px solid #f5c6cb;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+        }
+    }, 2000);
 }
 
 // 检查滚动位置
@@ -406,12 +453,55 @@ function showAgreementModal() {
     document.body.style.overflow = 'hidden';
 }
 
-// 关闭协议弹窗
+// 关闭协议弹窗（带确认）
 function closeAgreementModal() {
+    // 显示确认对话框
+    const confirmMessage = '<?php echo addslashes($t['agreement_decline_confirm'] ?? '您確定要拒絕協議嗎？這將會退出登錄並返回首頁。'); ?>';
+    
+    if (confirm(confirmMessage)) {
+        hideAgreementModal();
+        
+        // 强制用户同意协议，如果选择拒绝则退出登录
+        logoutAndRedirect();
+    }
+}
+
+// 直接隐藏协议弹窗（不带确认）
+function hideAgreementModal() {
     if (agreementModal) {
         agreementModal.classList.remove('show');
         document.body.style.overflow = '';
     }
+}
+
+// 退出登录并重定向到首页
+function logoutAndRedirect() {
+    // 显示退出提示
+    showSuccessMessage('正在退出登录...');
+    
+    // 清除用户会话
+    fetch('logout.php', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 重定向到首页
+            window.location.href = data.redirect || 'index.php';
+        } else {
+            // 如果退出失败也重定向
+            window.location.href = 'index.php';
+        }
+    })
+    .catch(error => {
+        console.error('Logout error:', error);
+        // 即使退出失败也重定向
+        window.location.href = 'index.php';
+    });
 }
 
 // 同意协议
@@ -436,8 +526,9 @@ function agreeToTerms() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            closeAgreementModal();
-            // 可以在这里添加成功后的处理逻辑
+            // 直接关闭弹窗，不触发确认对话框
+            hideAgreementModal();
+            // 显示成功消息
             showSuccessMessage(i18n.successMessage);
         } else {
             alert('操作失败，请重试: ' + (data.message || ''));

@@ -18,8 +18,29 @@ if (isset($_SESSION['user'])) {
 session_unset();
 session_destroy();
 
-echo '<!DOCTYPE html><html lang="' . $lang . '"><head><meta charset="UTF-8"><title>' . $t['login'] . '</title>';
-echo '<meta http-equiv="refresh" content="2;url=index.php?lang=' . $lang . '">';
-echo '<style>body{font-family:Arial,sans-serif;text-align:center;padding-top:100px;}</style></head><body>';
-echo '<h2 style="color:#1976d2;">' . ($lang === 'zh-HK' ? '您已成功登出，正在返回首頁...' : 'You have logged out successfully, returning to home...') . '</h2>';
-echo '</body></html>';
+// 检查是否是AJAX请求
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+          strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+$isPostRequest = $_SERVER['REQUEST_METHOD'] === 'POST';
+
+if ($isAjax || $isPostRequest) {
+    // AJAX请求，返回JSON响应
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    
+    echo json_encode([
+        'success' => true,
+        'message' => $lang === 'zh-HK' ? '您已成功登出' : 'You have logged out successfully',
+        'redirect' => 'index.php?lang=' . $lang
+    ]);
+} else {
+    // 普通请求，返回HTML页面
+    echo '<!DOCTYPE html><html lang="' . $lang . '"><head><meta charset="UTF-8"><title>' . $t['login'] . '</title>';
+    echo '<meta http-equiv="refresh" content="2;url=index.php?lang=' . $lang . '">';
+    echo '<style>body{font-family:Arial,sans-serif;text-align:center;padding-top:100px;}</style></head><body>';
+    echo '<h2 style="color:#1976d2;">' . ($lang === 'zh-HK' ? '您已成功登出，正在返回首頁...' : 'You have logged out successfully, returning to home...') . '</h2>';
+    echo '</body></html>';
+}
