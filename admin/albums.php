@@ -42,11 +42,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'create':
                 $title = trim($_POST['title']);
                 $description = trim($_POST['description']);
+                $created_at = trim($_POST['created_at']);
                 
                 if (!empty($title)) {
                     try {
-                        $stmt = $pdo->prepare("INSERT INTO albums (title, description, created_at) VALUES (?, ?, NOW())");
-                        $stmt->execute([$title, $description]);
+                        // 如果用户没有选择日期，使用当前时间
+                        if (empty($created_at)) {
+                            $stmt = $pdo->prepare("INSERT INTO albums (title, description, created_at) VALUES (?, ?, NOW())");
+                            $stmt->execute([$title, $description]);
+                        } else {
+                            // 验证日期格式并使用用户选择的日期
+                            $date = DateTime::createFromFormat('Y-m-d\TH:i', $created_at);
+                            if ($date === false) {
+                                // 如果日期格式无效，使用当前时间
+                                $stmt = $pdo->prepare("INSERT INTO albums (title, description, created_at) VALUES (?, ?, NOW())");
+                                $stmt->execute([$title, $description]);
+                            } else {
+                                $formatted_date = $date->format('Y-m-d H:i:s');
+                                $stmt = $pdo->prepare("INSERT INTO albums (title, description, created_at) VALUES (?, ?, ?)");
+                                $stmt->execute([$title, $description, $formatted_date]);
+                            }
+                        }
                         $message = $t['album_created'];
                         $message_type = 'success';
                     } catch (PDOException $e) {
@@ -60,11 +76,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $id = $_POST['id'];
                 $title = trim($_POST['title']);
                 $description = trim($_POST['description']);
+                $created_at = trim($_POST['created_at']);
                 
                 if (!empty($title) && !empty($id)) {
                     try {
-                        $stmt = $pdo->prepare("UPDATE albums SET title = ?, description = ? WHERE id = ?");
-                        $stmt->execute([$title, $description, $id]);
+                        // 如果用户没有提供日期，只更新标题和描述
+                        if (empty($created_at)) {
+                            $stmt = $pdo->prepare("UPDATE albums SET title = ?, description = ? WHERE id = ?");
+                            $stmt->execute([$title, $description, $id]);
+                        } else {
+                            // 验证日期格式并更新所有字段
+                            $date = DateTime::createFromFormat('Y-m-d\TH:i', $created_at);
+                            if ($date === false) {
+                                // 如果日期格式无效，只更新标题和描述
+                                $stmt = $pdo->prepare("UPDATE albums SET title = ?, description = ? WHERE id = ?");
+                                $stmt->execute([$title, $description, $id]);
+                            } else {
+                                $formatted_date = $date->format('Y-m-d H:i:s');
+                                $stmt = $pdo->prepare("UPDATE albums SET title = ?, description = ?, created_at = ? WHERE id = ?");
+                                $stmt->execute([$title, $description, $formatted_date, $id]);
+                            }
+                        }
                         $message = $t['album_updated'];
                         $message_type = 'success';
                     } catch (PDOException $e) {
@@ -506,6 +538,11 @@ $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <label for="description"><?php echo $t['album_description']; ?></label>
                         <textarea id="description" name="description"></textarea>
                     </div>
+                    <div class="form-group">
+                        <label for="created_at"><?php echo $t['custom_date']; ?></label>
+                        <input type="datetime-local" id="created_at" name="created_at">
+                        <small style="color: #666; font-size: 0.9em;"><?php echo $t['date_optional']; ?></small>
+                    </div>
                     <button type="submit" class="btn btn-success"><?php echo $t['create_album']; ?></button>
                 </form>
             </div>
@@ -560,7 +597,7 @@ $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </td>
                                 <td><?php echo date('Y-m-d H:i', strtotime($album['created_at'])); ?></td>
                                 <td class="actions">
-                                    <button onclick="editAlbum(<?php echo $album['id']; ?>, '<?php echo addslashes($album['title']); ?>', '<?php echo addslashes($album['description']); ?>')" 
+                                    <button onclick="editAlbum(<?php echo $album['id']; ?>, '<?php echo addslashes($album['title']); ?>', '<?php echo addslashes($album['description']); ?>', '<?php echo date('Y-m-d\TH:i', strtotime($album['created_at'])); ?>')" 
                                             class="btn btn-primary btn-sm"><?php echo $t['edit']; ?></button>
                                     <button onclick="deleteAlbum(<?php echo $album['id']; ?>, '<?php echo addslashes($album['title']); ?>')" 
                                             class="btn btn-danger btn-sm"><?php echo $t['delete']; ?></button>
@@ -635,6 +672,10 @@ $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <label for="edit_description"><?php echo $t['album_description']; ?></label>
                     <textarea id="edit_description" name="description"></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="edit_created_at"><?php echo $t['created_date']; ?></label>
+                    <input type="datetime-local" id="edit_created_at" name="created_at">
+                </div>
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button type="button" onclick="closeEditModal()" class="btn"><?php echo $t['cancel']; ?></button>
                     <button type="submit" class="btn btn-success"><?php echo $t['save']; ?></button>
@@ -664,10 +705,11 @@ $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script>
-        function editAlbum(id, title, description) {
+        function editAlbum(id, title, description, createdAt) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_title').value = title;
             document.getElementById('edit_description').value = description;
+            document.getElementById('edit_created_at').value = createdAt;
             document.getElementById('editModal').style.display = 'block';
         }
 
