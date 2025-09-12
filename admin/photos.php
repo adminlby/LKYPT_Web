@@ -382,11 +382,122 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 30px;
         }
 
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .mode-btn:hover {
+            background: #5a6fd8;
+            color: white;
+        }
+
         .upload-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 20px;
+        }
+
+        .batch-upload-section {
+            display: none;
+        }
+
+        .batch-upload-section.active {
+            display: block;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .progress-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-item:last-child {
+            border-bottom: none;
+        }
+
+        .progress-filename {
+            flex: 1;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-status {
+            min-width: 80px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-waiting {
+            color: #6c757d;
+        }
+
+        .status-uploading {
+            color: #007bff;
+        }
+
+        .status-success {
+            color: #28a745;
+        }
+
+        .status-error {
+            color: #dc3545;
+        }
+
+        .upload-summary {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 500;
         }
 
         .form-group {
@@ -760,17 +871,81 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <!-- 上传照片表单 -->
             <div class="upload-form">
                 <h3><?php echo $t['upload_photo']; ?></h3>
-                <form method="POST" action="" enctype="multipart/form-data">
-                    <input type="hidden" name="action" value="upload">
-                    
+                
+                <!-- 上传模式选择器 -->
+                <div class="mode-selector">
+                    <button class="mode-btn active" onclick="switchMode('single')" id="single-mode-btn">
+                        <?php echo $t['single_upload']; ?>
+                    </button>
+                    <button class="mode-btn" onclick="switchMode('batch')" id="batch-mode-btn">
+                        <?php echo $t['batch_upload']; ?>
+                    </button>
+                </div>
+
+                <!-- 单张上传模式 -->
+                <div id="single-upload-section">
+                    <form method="POST" action="" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="upload">
+                        
+                        <div class="upload-section">
+                            <div>
+                                <div class="form-group">
+                                    <label><?php echo $t['choose_file']; ?></label>
+                                    <div class="file-input">
+                                        <input type="file" name="photo" accept="image/*" required onchange="showFileName(this)">
+                                        <div class="file-input-label" id="file-label">
+                                            📷 <?php echo $t['choose_file']; ?> (JPEG, PNG, GIF, WebP, Max 5MB)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="form-group">
+                                    <label for="album_id"><?php echo $t['select_album']; ?></label>
+                                    <select id="album_id" name="album_id" onchange="toggleNewAlbumSection()">
+                                        <option value=""><?php echo $t['no_album_selected']; ?></option>
+                                        <?php foreach ($albums as $album): ?>
+                                            <option value="<?php echo $album['id']; ?>">
+                                                <?php echo htmlspecialchars($album['title']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                
+                                <div class="toggle-section" onclick="toggleNewAlbum()">
+                                    ➕ <?php echo $t['or_create_new']; ?>
+                                </div>
+                                
+                                <div class="toggle-content" id="new-album-section">
+                                    <div class="form-group">
+                                        <label for="new_album_title"><?php echo $t['new_album_title']; ?></label>
+                                        <input type="text" id="new_album_title" name="new_album_title" 
+                                               placeholder="<?php echo $t['new_album_title']; ?>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="new_album_description"><?php echo $t['new_album_description']; ?></label>
+                                        <textarea id="new_album_description" name="new_album_description" 
+                                                  placeholder="<?php echo $t['album_description']; ?>" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success"><?php echo $t['upload']; ?></button>
+                    </form>
+                </div>
+
+                <!-- 批量上传模式 -->
+                <div id="batch-upload-section" class="batch-upload-section">
                     <div class="upload-section">
                         <div>
                             <div class="form-group">
-                                <label><?php echo $t['choose_file']; ?></label>
+                                <label><?php echo $t['select_multiple_files']; ?></label>
                                 <div class="file-input">
-                                    <input type="file" name="photo" accept="image/*" required onchange="showFileName(this)">
-                                    <div class="file-input-label" id="file-label">
-                                        📷 <?php echo $t['choose_file']; ?> (JPEG, PNG, GIF, WebP, Max 5MB)
+                                    <input type="file" id="batch-files" accept="image/*" multiple onchange="showBatchFiles(this)">
+                                    <div class="file-input-label" id="batch-file-label">
+                                        📷 <?php echo $t['select_multiple_files']; ?> (JPEG, PNG, GIF, WebP, Max 5MB each)
                                     </div>
                                 </div>
                             </div>
@@ -778,8 +953,8 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         
                         <div>
                             <div class="form-group">
-                                <label for="album_id"><?php echo $t['select_album']; ?></label>
-                                <select id="album_id" name="album_id" onchange="toggleNewAlbumSection()">
+                                <label for="batch_album_id"><?php echo $t['select_album']; ?></label>
+                                <select id="batch_album_id">
                                     <option value=""><?php echo $t['no_album_selected']; ?></option>
                                     <?php foreach ($albums as $album): ?>
                                         <option value="<?php echo $album['id']; ?>">
@@ -789,27 +964,36 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </select>
                             </div>
                             
-                            <div class="toggle-section" onclick="toggleNewAlbum()">
+                            <div class="toggle-section" onclick="toggleBatchNewAlbum()">
                                 ➕ <?php echo $t['or_create_new']; ?>
                             </div>
                             
-                            <div class="toggle-content" id="new-album-section">
+                            <div class="toggle-content" id="batch-new-album-section">
                                 <div class="form-group">
-                                    <label for="new_album_title"><?php echo $t['new_album_title']; ?></label>
-                                    <input type="text" id="new_album_title" name="new_album_title" 
+                                    <label for="batch_new_album_title"><?php echo $t['new_album_title']; ?></label>
+                                    <input type="text" id="batch_new_album_title" 
                                            placeholder="<?php echo $t['new_album_title']; ?>">
                                 </div>
                                 <div class="form-group">
-                                    <label for="new_album_description"><?php echo $t['new_album_description']; ?></label>
-                                    <textarea id="new_album_description" name="new_album_description" 
+                                    <label for="batch_new_album_description"><?php echo $t['new_album_description']; ?></label>
+                                    <textarea id="batch_new_album_description" 
                                               placeholder="<?php echo $t['album_description']; ?>" rows="3"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-success"><?php echo $t['upload']; ?></button>
-                </form>
+                    <button type="button" onclick="startBatchUpload()" class="btn btn-success" id="batch-upload-btn" disabled>
+                        <?php echo $t['upload']; ?>
+                    </button>
+                    
+                    <!-- 上传进度 -->
+                    <div id="progress-container" class="progress-container" style="display: none;">
+                        <h4><?php echo $t['upload_progress']; ?></h4>
+                        <div id="progress-list"></div>
+                        <div id="upload-summary" style="display: none;"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- 搜索和筛选 -->
@@ -987,6 +1171,230 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         }
 
+        // 切换上传模式
+        function switchMode(mode) {
+            const singleSection = document.getElementById('single-upload-section');
+            const batchSection = document.getElementById('batch-upload-section');
+            const singleBtn = document.getElementById('single-mode-btn');
+            const batchBtn = document.getElementById('batch-mode-btn');
+            
+            if (mode === 'single') {
+                singleSection.style.display = 'block';
+                batchSection.style.display = 'none';
+                singleBtn.classList.add('active');
+                batchBtn.classList.remove('active');
+            } else {
+                singleSection.style.display = 'none';
+                batchSection.style.display = 'block';
+                batchBtn.classList.add('active');
+                singleBtn.classList.remove('active');
+            }
+        }
+
+        // 显示批量选择的文件
+        function showBatchFiles(input) {
+            const label = document.getElementById('batch-file-label');
+            const uploadBtn = document.getElementById('batch-upload-btn');
+            
+            if (input.files && input.files.length > 0) {
+                label.textContent = `📷 已选择 ${input.files.length} 个文件`;
+                uploadBtn.disabled = false;
+            } else {
+                label.textContent = '📷 <?php echo $t['select_multiple_files']; ?> (JPEG, PNG, GIF, WebP, Max 5MB each)';
+                uploadBtn.disabled = true;
+            }
+        }
+
+        // 开始批量上传
+        async function startBatchUpload() {
+            const filesInput = document.getElementById('batch-files');
+            const albumId = document.getElementById('batch_album_id').value;
+            const newAlbumTitle = document.getElementById('batch_new_album_title').value;
+            const newAlbumDescription = document.getElementById('batch_new_album_description').value;
+            const progressContainer = document.getElementById('progress-container');
+            const progressList = document.getElementById('progress-list');
+            const uploadBtn = document.getElementById('batch-upload-btn');
+            
+            if (!filesInput.files || filesInput.files.length === 0) {
+                alert('请先选择要上传的文件');
+                return;
+            }
+            
+            // 禁用上传按钮
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '上传中...';
+            
+            // 显示进度容器
+            progressContainer.style.display = 'block';
+            progressList.innerHTML = '';
+            
+            const files = Array.from(filesInput.files);
+            let uploadedCount = 0;
+            let failedCount = 0;
+            let targetAlbumId = albumId;
+            
+            // 如果需要创建新相册，先创建相册
+            if (!albumId && newAlbumTitle) {
+                try {
+                    // 创建一个临时文件用于创建相册
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 1;
+                    canvas.height = 1;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, 1, 1);
+                    
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'upload');
+                    formData.append('photo', blob, 'temp.png');
+                    formData.append('new_album_title', newAlbumTitle);
+                    formData.append('new_album_description', newAlbumDescription);
+                    
+                    const response = await fetch('upload-ajax.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success && result.album_id) {
+                        targetAlbumId = result.album_id;
+                        // 删除临时文件
+                        if (result.photo_id) {
+                            const deleteFormData = new FormData();
+                            deleteFormData.append('action', 'delete');
+                            deleteFormData.append('photo_id', result.photo_id);
+                            fetch('', { method: 'POST', body: deleteFormData });
+                        }
+                    } else {
+                        alert('创建新相册失败: ' + (result.error || '未知错误'));
+                        resetUploadForm();
+                        return;
+                    }
+                } catch (error) {
+                    alert('创建新相册失败: ' + error.message);
+                    resetUploadForm();
+                    return;
+                }
+            }
+            
+            // 开始上传文件
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const progressItem = createProgressItem(file.name, i);
+                progressList.appendChild(progressItem);
+                
+                try {
+                    const result = await uploadSingleFile(file, targetAlbumId, i);
+                    if (result.success) {
+                        updateProgressItem(i, 'success', '上传成功');
+                        uploadedCount++;
+                    } else {
+                        updateProgressItem(i, 'error', result.error || '上传失败');
+                        failedCount++;
+                    }
+                } catch (error) {
+                    updateProgressItem(i, 'error', error.message);
+                    failedCount++;
+                }
+            }
+            
+            // 显示上传总结
+            showUploadSummary(uploadedCount, failedCount);
+            resetUploadForm();
+        }
+
+        // 创建进度项
+        function createProgressItem(fileName, index) {
+            const item = document.createElement('div');
+            item.className = 'progress-item';
+            item.id = `progress-${index}`;
+            item.innerHTML = `
+                <div class="progress-file-name">${fileName}</div>
+                <div class="progress-status">
+                    <span class="status-text">准备上传...</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+            `;
+            return item;
+        }
+
+        // 更新进度项状态
+        function updateProgressItem(index, status, message) {
+            const item = document.getElementById(`progress-${index}`);
+            if (!item) return;
+            
+            const statusText = item.querySelector('.status-text');
+            const progressFill = item.querySelector('.progress-fill');
+            
+            statusText.textContent = message;
+            
+            if (status === 'success') {
+                item.classList.add('success');
+                progressFill.style.width = '100%';
+            } else if (status === 'error') {
+                item.classList.add('error');
+                progressFill.style.width = '100%';
+            } else if (status === 'uploading') {
+                statusText.textContent = '上传中...';
+                progressFill.style.width = '50%';
+            }
+        }
+
+        // 上传单个文件
+        async function uploadSingleFile(file, albumId, index) {
+            updateProgressItem(index, 'uploading', '上传中...');
+            
+            const formData = new FormData();
+            formData.append('action', 'upload');
+            formData.append('photo', file);
+            if (albumId) {
+                formData.append('album_id', albumId);
+            }
+            
+            const response = await fetch('upload-ajax.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('网络错误: ' + response.status);
+            }
+            
+            return await response.json();
+        }
+
+        // 显示上传总结
+        function showUploadSummary(uploaded, failed) {
+            const summary = document.getElementById('upload-summary');
+            summary.innerHTML = `
+                <div class="upload-summary">
+                    <h4>上传完成</h4>
+                    <div class="summary-stats">
+                        <span class="success-count">成功: ${uploaded}</span>
+                        ${failed > 0 ? `<span class="error-count">失败: ${failed}</span>` : ''}
+                    </div>
+                    <button onclick="refreshPage()" class="btn btn-primary">刷新页面查看</button>
+                </div>
+            `;
+            summary.style.display = 'block';
+        }
+
+        // 重置上传表单
+        function resetUploadForm() {
+            const uploadBtn = document.getElementById('batch-upload-btn');
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '<?php echo $t['upload']; ?>';
+        }
+
+        // 刷新页面
+        function refreshPage() {
+            window.location.reload();
+        }
+
         function toggleNewAlbum() {
             const section = document.getElementById('new-album-section');
             section.classList.toggle('active');
@@ -994,6 +1402,16 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // 清空相册选择
             if (section.classList.contains('active')) {
                 document.getElementById('album_id').value = '';
+            }
+        }
+
+        function toggleBatchNewAlbum() {
+            const section = document.getElementById('batch-new-album-section');
+            section.classList.toggle('active');
+            
+            // 清空相册选择
+            if (section.classList.contains('active')) {
+                document.getElementById('batch_album_id').value = '';
             }
         }
 
@@ -1069,6 +1487,15 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             document.body.removeChild(textArea);
         }
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认显示单张上传模式
+            const batchSection = document.getElementById('batch-upload-section');
+            if (batchSection) {
+                batchSection.style.display = 'none';
+            }
+        });
 
         // 点击模态框外部关闭
         window.onclick = function(event) {
