@@ -110,6 +110,9 @@ if (!$is_admin) {
             <a href="operation-logs.php?lang=<?php echo $current_lang; ?>" class="<?php echo basename($_SERVER['PHP_SELF']) == 'operation-logs.php' ? 'active' : ''; ?>">
                 <?php echo $t['operation_logs']; ?>
             </a>
+            <a href="user-activity-logs.php?lang=<?php echo $current_lang; ?>" class="<?php echo basename($_SERVER['PHP_SELF']) == 'user-activity-logs.php' ? 'active' : ''; ?>">
+                <?php echo $current_lang === 'zh-HK' ? '用戶活動' : 'User Activity'; ?>
+            </a>
             <a href="users.php?lang=<?php echo $current_lang; ?>" class="<?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                 <?php echo $current_lang === 'zh-HK' ? '用戶管理' : 'User Management'; ?>
             </a>

@@ -10,6 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lang.php';
 require_once __DIR__ . '/BanChecker.php';
+require_once __DIR__ . '/UserActivityLogger.php';
 
 // 设置语言
 $default_lang = 'zh-HK';
@@ -42,6 +43,11 @@ if ($ban_info) {
 }
 
 // 页面保护通过，用户可以访问页面
+// 记录页面访问日志
+$userActivityLogger = new UserActivityLogger($pdo);
+$page_name = basename($_SERVER['PHP_SELF'], '.php');
+$userActivityLogger->logPageView($user_email, $_SESSION['user']['username'], $page_name);
+
 // 可以使用 $user_email 获取当前用户邮箱
 // 可以使用 $_SESSION['user'] 获取用户信息
 ?>

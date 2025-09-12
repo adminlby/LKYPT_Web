@@ -4,6 +4,7 @@
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/lang.php';
 require_once __DIR__ . '/config/BanChecker.php';
+require_once __DIR__ . '/config/UserActivityLogger.php';
 $default_lang = 'zh-HK';
 if (isset($_GET['lang']) && in_array($_GET['lang'], ['zh-HK', 'en'])) {
     $current_lang = $_GET['lang'];
@@ -124,6 +125,10 @@ $_SESSION['user'] = [
     'username' => $username,
     'email' => $email,
 ];
+
+// 记录用户活动日志
+$userActivityLogger = new UserActivityLogger($pdo);
+$userActivityLogger->logLogin($email, $username, 'google_oauth');
 
 // 跳转到相册页面
 header('Location: album.php');
