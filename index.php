@@ -170,14 +170,17 @@
         // 引入数据库配置
         require_once __DIR__ . '/config/config.php';
 
-        // 访问次数统计
-        $counter_file = __DIR__ . '/counter.txt';
-        if (!file_exists($counter_file)) {
-            file_put_contents($counter_file, '0');
+        // 访问次数统计 - 从数据库读取并自增
+        try {
+            $stmt = $pdo->prepare('UPDATE site_stats SET visit_count = visit_count + 1 WHERE id = 1');
+            $stmt->execute();
+            $stmt = $pdo->prepare('SELECT visit_count FROM site_stats WHERE id = 1');
+            $stmt->execute();
+            $row = $stmt->fetch();
+            $visit_count = $row ? (int)$row['visit_count'] : 0;
+        } catch (Exception $e) {
+            $visit_count = 0;
         }
-        $visit_count = (int)file_get_contents($counter_file);
-        $visit_count++;
-        file_put_contents($counter_file, (string)$visit_count);
 
         // 照片总数
         $photo_count = 0;
