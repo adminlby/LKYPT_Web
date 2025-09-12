@@ -189,6 +189,16 @@
             $visit_count = 0;
         }
 
+        // 相册总数
+        $album_count = 0;
+        try {
+            $stmt = $pdo->query('SELECT COUNT(*) AS cnt FROM albums');
+            $row = $stmt->fetch();
+            $album_count = $row ? (int)$row['cnt'] : 0;
+        } catch (Exception $e) {
+            $album_count = 0;
+        }
+
         // 照片总数
         $photo_count = 0;
         try {
@@ -203,6 +213,10 @@
             <div class="stat-box">
                 <div class="stat-label"><?php echo $t['visit_count']; ?></div>
                 <div class="stat-value" id="visitCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label"><?php echo $t['album_count']; ?></div>
+                <div class="stat-value" id="albumCount">0</div>
             </div>
             <div class="stat-box">
                 <div class="stat-label"><?php echo $t['photo_count']; ?></div>
@@ -228,23 +242,27 @@
         }
         // PHP变量传递到JS
         animateValue('visitCount', 0, <?php echo $visit_count; ?>, 1200);
-        animateValue('photoCount', 0, <?php echo $photo_count; ?>, 1200);
+        animateValue('albumCount', 0, <?php echo $album_count; ?>, 1400);
+        animateValue('photoCount', 0, <?php echo $photo_count; ?>, 1600);
         </script>
         <style>
         .stats-container {
             display: flex;
             justify-content: center;
-            gap: 48px;
+            gap: 32px;
             margin-top: 48px;
             margin-bottom: 16px;
+            flex-wrap: wrap;
         }
         .stat-box {
             background: #e3f2fd;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            padding: 24px 32px;
+            padding: 24px 28px;
             text-align: center;
-            min-width: 140px;
+            min-width: 120px;
+            flex: 1;
+            max-width: 160px;
         }
         .stat-label {
             font-size: 1.1em;
@@ -256,13 +274,21 @@
             font-weight: bold;
             color: #1565c0;
         }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .stats-container {
                 flex-direction: column;
                 gap: 24px;
+                align-items: center;
             }
             .stat-box {
-                padding: 16px 8px;
+                padding: 20px 24px;
+                max-width: 200px;
+                width: 100%;
+            }
+        }
+        @media (max-width: 600px) {
+            .stat-box {
+                padding: 16px 20px;
             }
         }
         </style>

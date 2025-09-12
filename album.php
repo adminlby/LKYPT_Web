@@ -19,13 +19,27 @@ if (isset($_GET['lang']) && in_array($_GET['lang'], ['zh-HK', 'en'])) {
 }
 $t = $langs[$current_lang];
 
-// 获取照片数据
-$photos = [];
+// 获取相册和照片数据
+$albums = [];
 try {
-    $stmt = $pdo->query('SELECT * FROM photos ORDER BY uploaded_at DESC');
-    $photos = $stmt->fetchAll();
+    // 获取所有相册，按创建时间倒序排列
+    $stmt = $pdo->query('SELECT * FROM albums ORDER BY created_at DESC');
+    $albums_data = $stmt->fetchAll();
+    
+    // 为每个相册获取对应的照片
+    foreach ($albums_data as $album) {
+        $album['photos'] = [];
+        try {
+            $photo_stmt = $pdo->prepare('SELECT * FROM photos WHERE album_id = ? ORDER BY uploaded_at DESC');
+            $photo_stmt->execute([$album['id']]);
+            $album['photos'] = $photo_stmt->fetchAll();
+        } catch (Exception $e) {
+            $album['photos'] = [];
+        }
+        $albums[] = $album;
+    }
 } catch (Exception $e) {
-    $photos = [];
+    $albums = [];
 }
 ?>
 <!DOCTYPE html>
@@ -96,7 +110,7 @@ try {
             background: #ffec80;
         }
         .main {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 48px auto 0 auto;
             padding: 0 32px;
         }
@@ -107,46 +121,135 @@ try {
             margin-bottom: 32px;
             text-align: center;
         }
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 48px;
+        
+        /* 时间线样式 */
+        .timeline {
+            position: relative;
+            margin: 40px 0;
         }
-        .photo-item {
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+        
+        .album-item {
+            position: relative;
+            margin-bottom: 60px;
+            padding-left: 80px;
+        }
+        
+        .album-item::before {
+            content: '';
+            position: absolute;
+            left: 21px;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 2px #667eea;
+        }
+        
+        .album-card {
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.1);
             overflow: hidden;
-            transition: transform 0.2s;
         }
-        .photo-item:hover {
-            transform: translateY(-4px);
+        
+        .album-header {
+            padding: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-        .photo-img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-        }
-        .photo-info {
-            padding: 16px;
-        }
-        .photo-uploader {
-            font-size: 0.9em;
-            color: #666;
+        
+        .album-title {
+            font-size: 1.5em;
+            font-weight: bold;
             margin-bottom: 8px;
         }
+        
+        .album-description {
+            font-size: 1em;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .album-date {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .album-photos {
+            padding: 24px;
+        }
+        
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .photo-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        
+        .photo-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .photo-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .photo-info {
+            padding: 12px;
+        }
+        
+        .photo-uploader {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
         .photo-date {
-            font-size: 0.85em;
+            font-size: 0.75em;
             color: #999;
         }
+        
         .no-photos {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .no-albums {
             text-align: center;
             color: #666;
             font-size: 1.2em;
             margin-top: 80px;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 12px;
         }
-        @media (max-width: 600px) {
+        
+        @media (max-width: 768px) {
             .main {
                 padding: 0 16px;
             }
@@ -159,8 +262,23 @@ try {
                 margin-bottom: 8px;
                 margin-right: 0;
             }
+            .timeline::before {
+                left: 15px;
+            }
+            .album-item {
+                padding-left: 50px;
+            }
+            .album-item::before {
+                left: 6px;
+                width: 16px;
+                height: 16px;
+            }
             .photo-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 12px;
+            }
+            .photo-img {
+                height: 120px;
             }
         }
     </style>
@@ -196,18 +314,41 @@ try {
     <div class="main">
         <div class="page-title"><?php echo $t['album']; ?></div>
         
-        <?php if (empty($photos)): ?>
-            <div class="no-photos"><?php echo $t['no_photos']; ?></div>
+        <?php if (empty($albums)): ?>
+            <div class="no-albums"><?php echo $t['no_albums']; ?></div>
         <?php else: ?>
-            <div class="photo-grid">
-                <?php foreach ($photos as $photo): ?>
-                    <div class="photo-item">
-                        <img src="<?php echo htmlspecialchars($photo['url']); ?>" alt="Photo" class="photo-img">
-                        <div class="photo-info">
-                            <?php if ($photo['uploader']): ?>
-                                <div class="photo-uploader"><?php echo htmlspecialchars($photo['uploader']); ?></div>
-                            <?php endif; ?>
-                            <div class="photo-date"><?php echo date('Y-m-d H:i', strtotime($photo['uploaded_at'])); ?></div>
+            <div class="timeline">
+                <?php foreach ($albums as $album): ?>
+                    <div class="album-item">
+                        <div class="album-card">
+                            <div class="album-header">
+                                <div class="album-title"><?php echo htmlspecialchars($album['title']); ?></div>
+                                <?php if (!empty($album['description'])): ?>
+                                    <div class="album-description"><?php echo htmlspecialchars($album['description']); ?></div>
+                                <?php endif; ?>
+                                <div class="album-date">
+                                    <?php echo date('Y年m月d日 H:i', strtotime($album['created_at'])); ?>
+                                </div>
+                            </div>
+                            <div class="album-photos">
+                                <?php if (empty($album['photos'])): ?>
+                                    <div class="no-photos"><?php echo $t['no_photos']; ?></div>
+                                <?php else: ?>
+                                    <div class="photo-grid">
+                                        <?php foreach ($album['photos'] as $photo): ?>
+                                            <div class="photo-item">
+                                                <img src="<?php echo htmlspecialchars($photo['url']); ?>" alt="Photo" class="photo-img">
+                                                <div class="photo-info">
+                                                    <?php if (!empty($photo['uploader'])): ?>
+                                                        <div class="photo-uploader"><?php echo htmlspecialchars($photo['uploader']); ?></div>
+                                                    <?php endif; ?>
+                                                    <div class="photo-date"><?php echo date('m-d H:i', strtotime($photo['uploaded_at'])); ?></div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
