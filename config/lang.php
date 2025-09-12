@@ -333,6 +333,15 @@ $langs = [
     'batch_delete_success' => '成功刪除 %d 張照片',
     'batch_delete_partial' => '成功刪除 %d 張照片，%d 張失敗',
     'batch_delete_failed' => '批量刪除失敗',
+    // 协议弹窗翻译
+    'agreement_modal_title' => '用戶協議與隱私政策',
+    'agreement_modal_subtitle' => '請仔細閱讀以下內容並滾動至底部',
+    'agreement_scroll_indicator' => '請滾動閱讀完整內容',
+    'agreement_scroll_status_reading' => '請滾動至內容底部以啟用同意按鈕',
+    'agreement_scroll_status_completed' => '✓ 已閱讀完整內容，可以點擊同意',
+    'agreement_btn_later' => '稍後閱讀',
+    'agreement_btn_agree' => '我已閱讀並同意',
+    'agreement_success_message' => '感謝您的確認，您現在可以正常使用系統',
     ],
     'en' => [
         'home' => 'Home',
@@ -659,5 +668,21 @@ $langs = [
     'disclaimer_3' => 'Our school or website administrators shall not bear any responsibility for any losses, data loss, file corruption, system errors or other consequences caused by the use or inability to use this system.',
     'disclaimer_4' => 'Users should ensure that their devices used to access this system have necessary protective measures (such as antivirus software, backup mechanisms, etc.).',
     'disclaimer_warning' => 'Any disputes, complaints or legal responsibilities arising from users\' unauthorized distribution of photos or data from this system to the outside world shall be borne by the distributor themselves, and our school or website administrators shall not be responsible.',
+    // Agreement modal translations
+    'agreement_modal_title' => 'User Agreement & Privacy Policy',
+    'agreement_modal_subtitle' => 'Please read the following content carefully and scroll to the bottom',
+    'agreement_scroll_indicator' => 'Please scroll to read the complete content',
+    'agreement_scroll_status_reading' => 'Please scroll to the bottom to enable the agree button',
+    'agreement_scroll_status_completed' => '✓ Read complete content, you can click agree',
+    'agreement_btn_later' => 'Read Later',
+    'agreement_btn_agree' => 'I have read and agree',
+    'agreement_success_message' => 'Thank you for your confirmation, you can now use the system normally',
     ]
 ];
+
+// 兼容性映射
+$lang = [
+    'zh' => $langs['zh-HK'],
+    'en' => $langs['en']
+];
+?>

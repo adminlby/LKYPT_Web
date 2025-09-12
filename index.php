@@ -299,5 +299,8 @@
         <hr style="margin-bottom:12px;">
         Open Sources：<a href="https://github.com/adminlby/LKYPT_Web" target="_blank" style="color:#1976d2;">https://github.com/adminlby/LKYPT_Web</a>
     </footer>
+
+    <!-- 包含协议检查组件 -->
+    <?php include 'components/agreement_checker.php'; ?>
 </body>
 </html>

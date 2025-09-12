@@ -422,5 +422,8 @@ try {
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- 包含协议检查组件 -->
+    <?php include 'components/agreement_checker.php'; ?>
 </body>
 </html>
