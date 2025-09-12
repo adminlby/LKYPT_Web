@@ -22,9 +22,25 @@ $t = $langs[$current_lang];
 // 获取相册和照片数据
 $albums = [];
 try {
-    // 获取所有相册，按创建时间倒序排列
-    $stmt = $pdo->query('SELECT * FROM albums ORDER BY created_at DESC');
-    $albums_data = $stmt->fetchAll();
+    // 获取所有相册，包含封面照片信息，按创建时间倒序排列
+    try {
+        $stmt = $pdo->query('
+            SELECT a.*, 
+                   cp.url as cover_photo_url
+            FROM albums a 
+            LEFT JOIN photos cp ON a.cover_photo_id = cp.id 
+            ORDER BY a.created_at DESC
+        ');
+        $albums_data = $stmt->fetchAll();
+    } catch (PDOException $e) {
+        // 如果查询失败，可能是因为外键约束问题，尝试简化查询
+        $stmt = $pdo->query('SELECT * FROM albums ORDER BY created_at DESC');
+        $albums_data = $stmt->fetchAll();
+        // 为每个相册添加空的封面信息
+        foreach ($albums_data as &$album_item) {
+            $album_item['cover_photo_url'] = null;
+        }
+    }
     
     // 为每个相册获取对应的照片
     foreach ($albums_data as $album) {
@@ -33,6 +49,11 @@ try {
             $photo_stmt = $pdo->prepare('SELECT * FROM photos WHERE album_id = ? ORDER BY uploaded_at DESC');
             $photo_stmt->execute([$album['id']]);
             $album['photos'] = $photo_stmt->fetchAll();
+            
+            // 如果没有设置封面照片但有照片，使用第一张照片作为封面
+            if (empty($album['cover_photo_url']) && !empty($album['photos'])) {
+                $album['cover_photo_url'] = $album['photos'][0]['url'];
+            }
         } catch (Exception $e) {
             $album['photos'] = [];
         }
@@ -168,6 +189,38 @@ try {
             padding: 24px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            position: relative;
+        }
+
+        .album-header.with-cover {
+            padding: 0;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .album-cover-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .album-header-content {
+            position: relative;
+            z-index: 2;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .album-header.with-cover .album-header-content {
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%);
         }
         
         .album-title {
@@ -321,13 +374,20 @@ try {
                 <?php foreach ($albums as $album): ?>
                     <div class="album-item">
                         <div class="album-card">
-                            <div class="album-header">
-                                <div class="album-title"><?php echo htmlspecialchars($album['title']); ?></div>
-                                <?php if (!empty($album['description'])): ?>
-                                    <div class="album-description"><?php echo htmlspecialchars($album['description']); ?></div>
+                            <div class="album-header <?php echo !empty($album['cover_photo_url']) ? 'with-cover' : ''; ?>">
+                                <?php if (!empty($album['cover_photo_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($album['cover_photo_url']); ?>" 
+                                         alt="<?php echo htmlspecialchars($album['title']); ?>" 
+                                         class="album-cover-photo">
                                 <?php endif; ?>
-                                <div class="album-date">
-                                    <?php echo date('Y年m月d日 H:i', strtotime($album['created_at'])); ?>
+                                <div class="album-header-content">
+                                    <div class="album-title"><?php echo htmlspecialchars($album['title']); ?></div>
+                                    <?php if (!empty($album['description'])): ?>
+                                        <div class="album-description"><?php echo htmlspecialchars($album['description']); ?></div>
+                                    <?php endif; ?>
+                                    <div class="album-date">
+                                        <?php echo date('Y年m月d日 H:i', strtotime($album['created_at'])); ?>
+                                    </div>
                                 </div>
                             </div>
                             <div class="album-photos">

@@ -94,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         break;
                     }
                     
-                    // 验证文件大小 (5MB)
-                    if ($file['size'] > 5 * 1024 * 1024) {
+                    // 验证文件大小 (20MB)
+                    if ($file['size'] > 20 * 1024 * 1024) {
                         $message = $t['file_too_large'];
                         $message_type = 'error';
                         break;
@@ -173,6 +173,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];
                     $message = $t['upload_error'] . ': ' . ($error_messages[$upload_error] ?? 'Unknown error');
                     $message_type = 'error';
+                }
+                break;
+                
+            case 'set_cover':
+                $photo_id = $_POST['photo_id'] ?? '';
+                $album_id = $_POST['album_id'] ?? '';
+                
+                if (!empty($photo_id) && !empty($album_id)) {
+                    try {
+                        // 获取照片信息
+                        $stmt = $pdo->prepare("SELECT * FROM photos WHERE id = ? AND album_id = ?");
+                        $stmt->execute([$photo_id, $album_id]);
+                        $photo = $stmt->fetch();
+                        
+                        if ($photo) {
+                            // 获取相册信息
+                            $stmt = $pdo->prepare("SELECT * FROM albums WHERE id = ?");
+                            $stmt->execute([$album_id]);
+                            $album = $stmt->fetch();
+                            
+                            if ($album) {
+                                // 更新相册的封面照片
+                                $stmt = $pdo->prepare("UPDATE albums SET cover_photo_id = ? WHERE id = ?");
+                                $stmt->execute([$photo_id, $album_id]);
+                                
+                                // 记录操作日志
+                                $photo_filename = basename($photo['url']);
+                                $logger->logPhotoOperation(
+                                    $current_user, 
+                                    $current_username, 
+                                    'set_cover', 
+                                    $photo_id, 
+                                    $photo_filename, 
+                                    "将照片「{$photo_filename}」设置为相册「{$album['title']}」的封面",
+                                    $photo,
+                                    null
+                                );
+                                
+                                $message = "已将照片设置为相册封面";
+                                $message_type = 'success';
+                            } else {
+                                $message = "相册不存在";
+                                $message_type = 'error';
+                            }
+                        } else {
+                            $message = "照片不存在或不属于指定相册";
+                            $message_type = 'error';
+                        }
+                    } catch (PDOException $e) {
+                        $message = "设置封面失败: " . $e->getMessage();
+                        $message_type = 'error';
+                    }
                 }
                 break;
                 
@@ -894,7 +946,7 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <div class="file-input">
                                         <input type="file" name="photo" accept="image/*" required onchange="showFileName(this)">
                                         <div class="file-input-label" id="file-label">
-                                            📷 <?php echo $t['choose_file']; ?> (JPEG, PNG, GIF, WebP, Max 5MB)
+                                            📷 <?php echo $t['choose_file']; ?> (JPEG, PNG, GIF, WebP, Max 20MB)
                                         </div>
                                     </div>
                                 </div>
@@ -945,7 +997,7 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="file-input">
                                     <input type="file" id="batch-files" accept="image/*" multiple onchange="showBatchFiles(this)">
                                     <div class="file-input-label" id="batch-file-label">
-                                        📷 <?php echo $t['select_multiple_files']; ?> (JPEG, PNG, GIF, WebP, Max 5MB each)
+                                        📷 <?php echo $t['select_multiple_files']; ?> (JPEG, PNG, GIF, WebP, Max 20MB each)
                                     </div>
                                 </div>
                             </div>
@@ -1066,6 +1118,10 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="photo-actions">
                                     <button onclick="copyUrl('<?php echo htmlspecialchars($photo['url']); ?>')" 
                                             class="btn btn-primary btn-sm">📋 URL</button>
+                                    <?php if (!empty($photo['album_id'])): ?>
+                                        <button onclick="setCover(<?php echo $photo['id']; ?>, <?php echo $photo['album_id']; ?>, '<?php echo addslashes(basename($photo['url'])); ?>')" 
+                                                class="btn btn-success btn-sm">🖼️ <?php echo $t['set_as_cover']; ?></button>
+                                    <?php endif; ?>
                                     <button onclick="deletePhoto(<?php echo $photo['id']; ?>, '<?php echo addslashes(basename($photo['url'])); ?>')" 
                                             class="btn btn-danger btn-sm"><?php echo $t['delete']; ?></button>
                                 </div>
@@ -1167,7 +1223,7 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if (input.files && input.files[0]) {
                 label.textContent = '📷 ' + input.files[0].name;
             } else {
-                label.textContent = '📷 <?php echo $t['choose_file']; ?> (JPEG, PNG, GIF, WebP, Max 5MB)';
+                label.textContent = '📷 <?php echo $t['choose_file']; ?> (JPEG, PNG, GIF, WebP, Max 20MB)';
             }
         }
 
@@ -1200,7 +1256,7 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 label.textContent = `📷 已选择 ${input.files.length} 个文件`;
                 uploadBtn.disabled = false;
             } else {
-                label.textContent = '📷 <?php echo $t['select_multiple_files']; ?> (JPEG, PNG, GIF, WebP, Max 5MB each)';
+                label.textContent = '📷 <?php echo $t['select_multiple_files']; ?> (JPEG, PNG, GIF, WebP, Max 20MB each)';
                 uploadBtn.disabled = true;
             }
         }
@@ -1486,6 +1542,21 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 prompt('Copy URL manually:', text);
             }
             document.body.removeChild(textArea);
+        }
+
+        // 设置封面照片
+        function setCover(photoId, albumId, fileName) {
+            if (confirm('确定要将照片 "' + fileName + '" 设置为相册封面吗？')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="set_cover">
+                    <input type="hidden" name="photo_id" value="${photoId}">
+                    <input type="hidden" name="album_id" value="${albumId}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
 
         // 页面初始化

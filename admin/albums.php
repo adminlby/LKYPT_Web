@@ -295,13 +295,35 @@ $total_pages = ceil($total_records / $per_page);
 
 // 获取相册列表
 $sql = "SELECT a.*, 
-        (SELECT COUNT(*) FROM photos p WHERE p.album_id = a.id) as photo_count
-        FROM albums a $where_clause 
+        (SELECT COUNT(*) FROM photos p WHERE p.album_id = a.id) as photo_count,
+        cp.url as cover_photo_url
+        FROM albums a 
+        LEFT JOIN photos cp ON a.cover_photo_id = cp.id
+        $where_clause 
         ORDER BY a.created_at DESC 
         LIMIT $per_page OFFSET $offset";
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+try {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // 如果查询失败，可能是因为外键约束问题，尝试简化查询
+    $sql = "SELECT a.*, 
+            (SELECT COUNT(*) FROM photos p WHERE p.album_id = a.id) as photo_count
+            FROM albums a 
+            $where_clause 
+            ORDER BY a.created_at DESC 
+            LIMIT $per_page OFFSET $offset";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // 为每个相册添加空的封面信息
+    foreach ($albums as &$album) {
+        $album['cover_photo_url'] = null;
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -503,6 +525,33 @@ $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .albums-table tr:hover {
             background: #f8f9fa;
+        }
+
+        .album-cover {
+            width: 80px;
+            text-align: center;
+        }
+
+        .cover-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .no-cover {
+            width: 60px;
+            height: 60px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #999;
+            margin: 0 auto;
         }
 
         .album-title {
@@ -720,6 +769,7 @@ $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <table class="albums-table">
                     <thead>
                         <tr>
+                            <th>封面</th>
                             <th><?php echo $t['album_title']; ?></th>
                             <th><?php echo $t['album_description']; ?></th>
                             <th><?php echo $t['photo_count_in_album']; ?></th>
@@ -730,6 +780,14 @@ $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <tbody>
                         <?php foreach ($albums as $album): ?>
                             <tr>
+                                <td class="album-cover">
+                                    <?php if (!empty($album['cover_photo_url'])): ?>
+                                        <img src="<?php echo htmlspecialchars($album['cover_photo_url']); ?>" 
+                                             alt="封面" class="cover-thumbnail">
+                                    <?php else: ?>
+                                        <div class="no-cover">无封面</div>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="album-title"><?php echo htmlspecialchars($album['title']); ?></td>
                                 <td class="album-description" title="<?php echo htmlspecialchars($album['description']); ?>">
                                     <?php echo htmlspecialchars($album['description']); ?>

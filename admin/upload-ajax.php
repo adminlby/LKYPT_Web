@@ -83,8 +83,8 @@ if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
         exit;
     }
     
-    // 验证文件大小 (5MB)
-    if ($file['size'] > 5 * 1024 * 1024) {
+    // 验证文件大小 (20MB)
+    if ($file['size'] > 20 * 1024 * 1024) {
         echo json_encode(['success' => false, 'message' => $t['file_too_large']]);
         exit;
     }
