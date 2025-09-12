@@ -39,7 +39,7 @@ try {
     }
     
     // 记录下载活动日志
-    $logger = new UserActivityLogger($pdo);
+    $logger = new UserActivityLogger($pdo, $current_lang, $t);
     
     $logger->logDownloadPhoto(
         $user_email,

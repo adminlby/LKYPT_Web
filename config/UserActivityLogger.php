@@ -5,9 +5,35 @@
  */
 class UserActivityLogger {
     private $pdo;
+    private $lang;
+    private $t;
     
-    public function __construct($pdo) {
+    public function __construct($pdo, $lang = 'zh-HK', $translations = null) {
         $this->pdo = $pdo;
+        $this->lang = $lang;
+        $this->t = $translations;
+        
+        // 如果没有传入翻译，则加载默认翻译
+        if (!$this->t) {
+            require_once __DIR__ . '/lang.php';
+            $this->t = $langs[$lang] ?? $langs['zh-HK'];
+        }
+    }
+    
+    /**
+     * 获取活动描述的多语言文本
+     */
+    private function getActivityText($key, $params = []) {
+        $text = $this->t[$key] ?? $key;
+        
+        // 替换参数
+        if (!empty($params)) {
+            foreach ($params as $placeholder => $value) {
+                $text = str_replace('{' . $placeholder . '}', $value, $text);
+            }
+        }
+        
+        return $text;
     }
     
     /**
@@ -76,7 +102,8 @@ class UserActivityLogger {
      * 记录用户登录
      */
     public function logLogin($user_email, $user_name, $login_method = 'google_oauth') {
-        $this->log($user_email, $user_name, 'login', "用户通过 {$login_method} 登录", [
+        $description = $this->getActivityText('activity_login', ['method' => $login_method]);
+        $this->log($user_email, $user_name, 'login', $description, [
             'additional_data' => ['login_method' => $login_method]
         ]);
     }
@@ -85,14 +112,16 @@ class UserActivityLogger {
      * 记录用户登出
      */
     public function logLogout($user_email, $user_name) {
-        $this->log($user_email, $user_name, 'logout', '用户退出登录');
+        $description = $this->getActivityText('activity_logout');
+        $this->log($user_email, $user_name, 'logout', $description);
     }
     
     /**
      * 记录查看相册
      */
     public function logViewAlbum($user_email, $user_name, $album_id, $album_name = '') {
-        $this->log($user_email, $user_name, 'view_album', "查看相册: {$album_name}", [
+        $description = $this->getActivityText('activity_view_album', ['name' => $album_name]);
+        $this->log($user_email, $user_name, 'view_album', $description, [
             'target_type' => 'album',
             'target_id' => $album_id,
             'target_name' => $album_name
@@ -103,7 +132,8 @@ class UserActivityLogger {
      * 记录查看照片
      */
     public function logViewPhoto($user_email, $user_name, $photo_id, $photo_name = '') {
-        $this->log($user_email, $user_name, 'view_photo', "查看照片: {$photo_name}", [
+        $description = $this->getActivityText('activity_view_photo', ['name' => $photo_name]);
+        $this->log($user_email, $user_name, 'view_photo', $description, [
             'target_type' => 'photo',
             'target_id' => $photo_id,
             'target_name' => $photo_name
@@ -114,7 +144,8 @@ class UserActivityLogger {
      * 记录上传照片
      */
     public function logUploadPhoto($user_email, $user_name, $photo_id, $photo_name, $album_id = null) {
-        $this->log($user_email, $user_name, 'upload_photo', "上传照片: {$photo_name}", [
+        $description = $this->getActivityText('activity_upload_photo', ['name' => $photo_name]);
+        $this->log($user_email, $user_name, 'upload_photo', $description, [
             'target_type' => 'photo',
             'target_id' => $photo_id,
             'target_name' => $photo_name,
@@ -126,16 +157,16 @@ class UserActivityLogger {
      * 记录下载照片
      */
     public function logDownloadPhoto($user_email, $user_name, $photo_id, $photo_name = '', $album_name = '') {
-        $description = "下载照片";
-        if ($album_name) {
-            $description .= " ({$album_name})";
-        }
-        if ($photo_name) {
-            $description .= ": {$photo_name}";
-        } else {
-            $description .= " ID#{$photo_id}";
+        $display_name = $photo_name;
+        if ($album_name && $photo_name) {
+            $display_name = "({$album_name}) {$photo_name}";
+        } elseif ($album_name) {
+            $display_name = "({$album_name}) ID#{$photo_id}";
+        } elseif (!$photo_name) {
+            $display_name = "ID#{$photo_id}";
         }
         
+        $description = $this->getActivityText('activity_download_photo', ['name' => $display_name]);
         $this->log($user_email, $user_name, 'download_photo', $description, [
             'target_type' => 'photo',
             'target_id' => $photo_id,
@@ -148,7 +179,8 @@ class UserActivityLogger {
      * 记录搜索操作
      */
     public function logSearch($user_email, $user_name, $search_query, $search_type = 'general') {
-        $this->log($user_email, $user_name, 'search', "搜索: {$search_query}", [
+        $description = $this->getActivityText('activity_search', ['query' => $search_query]);
+        $this->log($user_email, $user_name, 'search', $description, [
             'additional_data' => [
                 'search_query' => $search_query,
                 'search_type' => $search_type
@@ -160,14 +192,16 @@ class UserActivityLogger {
      * 记录页面访问
      */
     public function logPageView($user_email, $user_name, $page_name) {
-        $this->log($user_email, $user_name, 'page_view', "访问页面: {$page_name}");
+        $description = $this->getActivityText('activity_page_view', ['page' => $page_name]);
+        $this->log($user_email, $user_name, 'page_view', $description);
     }
     
     /**
      * 记录错误操作
      */
     public function logError($user_email, $user_name, $action_type, $error_message) {
-        $this->log($user_email, $user_name, $action_type, "操作失败: {$error_message}", [
+        $description = $this->getActivityText('activity_error', ['error' => $error_message]);
+        $this->log($user_email, $user_name, $action_type, $description, [
             'response_status' => 'error',
             'error_message' => $error_message
         ]);

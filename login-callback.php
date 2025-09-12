@@ -127,7 +127,7 @@ $_SESSION['user'] = [
 ];
 
 // 记录用户活动日志
-$userActivityLogger = new UserActivityLogger($pdo);
+$userActivityLogger = new UserActivityLogger($pdo, $current_lang, $t);
 $userActivityLogger->logLogin($email, $username, 'google_oauth');
 
 // 跳转到相册页面

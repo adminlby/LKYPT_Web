@@ -10,7 +10,7 @@ $t = $langs[$lang];
 
 // 记录用户退出日志（在清除session前）
 if (isset($_SESSION['user'])) {
-    $userActivityLogger = new UserActivityLogger($pdo);
+    $userActivityLogger = new UserActivityLogger($pdo, $lang, $t);
     $userActivityLogger->logLogout($_SESSION['user']['email'], $_SESSION['user']['username']);
 }
 

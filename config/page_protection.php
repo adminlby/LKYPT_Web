@@ -44,7 +44,7 @@ if ($ban_info) {
 
 // 页面保护通过，用户可以访问页面
 // 记录页面访问日志
-$userActivityLogger = new UserActivityLogger($pdo);
+$userActivityLogger = new UserActivityLogger($pdo, $current_lang, $t);
 $page_name = basename($_SERVER['PHP_SELF'], '.php');
 $userActivityLogger->logPageView($user_email, $_SESSION['user']['username'], $page_name);
 

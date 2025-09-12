@@ -175,6 +175,16 @@ $langs = [
     'minutes' => '分鐘',
     'temporary' => '臨時',
     'optional' => '可選',
+    // 用戶活動日誌
+    'activity_login' => '用戶通過 {method} 登入',
+    'activity_logout' => '用戶登出',
+    'activity_view_album' => '查看相冊: {name}',
+    'activity_view_photo' => '查看照片: {name}',
+    'activity_upload_photo' => '上傳照片: {name}',
+    'activity_download_photo' => '下載照片: {name}',
+    'activity_search' => '搜尋: {query}',
+    'activity_page_view' => '訪問頁面: {page}',
+    'activity_error' => '操作失敗: {error}',
     // 詳情頁面
     'photo_details' => '照片詳情',
     'album_details' => '相冊詳情',
@@ -387,6 +397,16 @@ $langs = [
     'optional' => 'Optional',
     'back_home' => 'Back to Home',
     'logout_btn' => 'Logout',
+    // User Activity Logs
+    'activity_login' => 'User logged in via {method}',
+    'activity_logout' => 'User logged out',
+    'activity_view_album' => 'Viewed album: {name}',
+    'activity_view_photo' => 'Viewed photo: {name}',
+    'activity_upload_photo' => 'Uploaded photo: {name}',
+    'activity_download_photo' => 'Downloaded photo: {name}',
+    'activity_search' => 'Searched: {query}',
+    'activity_page_view' => 'Visited page: {page}',
+    'activity_error' => 'Operation failed: {error}',
     // Detail Pages
     'photo_details' => 'Photo Details',
     'album_details' => 'Album Details',
