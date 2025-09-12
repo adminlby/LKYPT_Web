@@ -12,6 +12,7 @@ $langs = [
         'slogan' => 'ᴄᴀᴘᴛᴜʀɪɴɢ ᴍᴏᴍᴇɴᴛꜱ, ᴄʀᴇᴀᴛɪɴɢ ᴍᴇᴍᴏʀɪᴇꜱ',
         'teacher' => '👨🏼‍🏫 負責老師：梁鑽淇老師',
         'leader1' => '📝 隊長：劉濱源',
+        'web_admin' => '👨🏼‍🏫 網站管理員：劉濱源',
         'leader2' => '📝 隊長：吳釗航',
         'visit_count' => '總訪問次數',
         'photo_count' => '總照片數目',
@@ -26,7 +27,9 @@ $langs = [
     'error_invalid_email' => '僅允許學校帳號或指定電郵登入',
     'admin_dashboard' => '管理員後台',
     'access_denied' => '拒絕訪問，您不是管理員',
-    'back_home' => '返回首頁'
+    'back_home' => '返回首頁',
+    'no_photos' => '暫無照片',
+    'logout' => '登出',
     ],
     'en' => [
         'home' => 'Home',
@@ -38,6 +41,7 @@ $langs = [
         'school_en' => 'S.K.H. Leung Kwai Yee Secondary School',
         'slogan' => 'Capturing Moments, Creating Memories',
         'teacher' => '👨🏼‍🏫 Teacher-in-charge: Mr. Leung Chun Ki',
+        'web_admin' => '👨🏼‍🏫 WebMaster：LIU Bonny',
         'leader1' => '📝 Captain: LIU Bonny',
         'leader2' => '📝 Captain: Wu Chiu Hong',
         'visit_count' => 'Total Visits',
@@ -53,6 +57,8 @@ $langs = [
     'error_invalid_email' => 'Only school accounts or specified email allowed',
     'admin_dashboard' => 'Admin Dashboard',
     'access_denied' => 'Access denied, you are not an admin',
-    'back_home' => 'Back to homepage'
+    'back_home' => 'Back to homepage',
+    'no_photos' => 'No photos available',
+    'logout' => 'Logout',
     ]
 ];

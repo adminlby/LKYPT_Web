@@ -37,8 +37,14 @@
             text-decoration: none;
             font-size: 1em;
             transition: color 0.2s;
+            padding: 8px 16px;
+            border-radius: 4px;
         }
         .nav-menu a:hover {
+            color: #ffd700;
+        }
+        .nav-menu a.active {
+            background: #34495e;
             color: #ffd700;
         }
         .nav-actions {
@@ -131,7 +137,7 @@
         <div class="nav-left">
             <div class="nav-logo"><?php echo $t['team']; ?></div>
             <div class="nav-menu">
-                <a href="index.php?lang=<?php echo $current_lang; ?>"><?php echo $t['home']; ?></a>
+                <a href="index.php?lang=<?php echo $current_lang; ?>" class="active"><?php echo $t['home']; ?></a>
                 <a href="album.php?lang=<?php echo $current_lang; ?>"><?php echo $t['album']; ?></a>
                 <a href="about.php?lang=<?php echo $current_lang; ?>"><?php echo $t['about']; ?></a>
             </div>
@@ -163,6 +169,7 @@
     <div class="school-en"><?php echo $t['school_en']; ?></div>
     <div class="slogan"><?php echo $t['slogan']; ?></div>
     <div class="team-info"><?php echo $t['teacher']; ?></div>
+    <div class="team-info"><?php echo $t['web_admin']; ?></div>
     <div class="team-info"><?php echo $t['leader1']; ?></div>
     <div class="team-info"><?php echo $t['leader2']; ?></div>
         <!-- 统计组件开始 -->
