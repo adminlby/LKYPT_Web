@@ -140,6 +140,7 @@
                 <a href="index.php?lang=<?php echo $current_lang; ?>" class="active"><?php echo $t['home']; ?></a>
                 <a href="album.php?lang=<?php echo $current_lang; ?>"><?php echo $t['album']; ?></a>
                 <a href="about.php?lang=<?php echo $current_lang; ?>"><?php echo $t['about']; ?></a>
+                <a href="help.php?lang=<?php echo $current_lang; ?>"><?php echo $t['help']; ?></a>
             </div>
         </div>
         <div class="nav-actions">
