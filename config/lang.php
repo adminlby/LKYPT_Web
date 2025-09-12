@@ -26,6 +26,7 @@ $langs = [
     'error_invalid_email' => '僅允許學校帳號或指定電郵登入',
     'admin_dashboard' => '管理員後台',
     'access_denied' => '拒絕訪問，您不是管理員',
+    'back_home' => '返回首頁'
     ],
     'en' => [
         'home' => 'Home',
@@ -52,5 +53,6 @@ $langs = [
     'error_invalid_email' => 'Only school accounts or specified email allowed',
     'admin_dashboard' => 'Admin Dashboard',
     'access_denied' => 'Access denied, you are not an admin',
+    'back_home' => 'Back to homepage'
     ]
 ];
