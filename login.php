@@ -44,10 +44,23 @@ $auth_url = 'https://accounts.google.com/o/oauth2/v2/auth?'
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .login-btn:hover { background: #357ae8; }
+        .home-btn {
+            background: #6c757d;
+            color: #fff;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .home-btn:hover { background: #5a6268; }
     </style>
 </head>
 <body>
     <h2><?php echo $t['login_title']; ?></h2>
+    <br><br>
+    <a class="home-btn" href="/index.php"><?php echo $t['back_home']; ?></a>
     <a class="login-btn" href="<?php echo $auth_url; ?>"><?php echo $t['login_btn']; ?></a>
 </body>
 </html>
