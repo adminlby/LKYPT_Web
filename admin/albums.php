@@ -2,6 +2,7 @@
 session_start();
 require_once '../config/config.php';
 require_once '../config/lang.php';
+require_once '../config/OperationLogger.php';
 
 // 检查用户是否登录
 if (!isset($_SESSION['user'])) {
@@ -31,6 +32,11 @@ if (!$is_admin) {
     header("Location: ../index.php?error=" . urlencode($error_message));
     exit();
 }
+
+// 初始化操作日志记录器
+$logger = new OperationLogger($pdo);
+$current_user = $_SESSION['user']['email'];
+$current_username = $_SESSION['user']['username'] ?? $_SESSION['user']['email'];
 
 // 处理表单提交
 $message = '';
@@ -63,9 +69,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $stmt->execute([$title, $description, $formatted_date]);
                             }
                         }
+                        
+                        // 获取新创建的相册ID
+                        $album_id = $pdo->lastInsertId();
+                        
+                        // 记录操作日志
+                        $logger->logAlbumOperation(
+                            $current_user, 
+                            $current_username, 
+                            'create', 
+                            $album_id, 
+                            $title, 
+                            '创建了新相册' . ($description ? "，描述：{$description}" : ''),
+                            null,
+                            ['title' => $title, 'description' => $description]
+                        );
+                        
                         $message = $t['album_created'];
                         $message_type = 'success';
                     } catch (PDOException $e) {
+                        // 记录失败日志
+                        $logger->logAlbumOperation(
+                            $current_user, 
+                            $current_username, 
+                            'create', 
+                            null, 
+                            $title, 
+                            '创建相册失败', 
+                            null, 
+                            null, 
+                            'failed', 
+                            $e->getMessage()
+                        );
+                        
                         $message = "Error: " . $e->getMessage();
                         $message_type = 'error';
                     }
@@ -80,6 +116,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if (!empty($title) && !empty($id)) {
                     try {
+                        // 获取更新前的数据
+                        $stmt = $pdo->prepare("SELECT * FROM albums WHERE id = ?");
+                        $stmt->execute([$id]);
+                        $before_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if (!$before_data) {
+                            $message = "相册不存在";
+                            $message_type = 'error';
+                            break;
+                        }
+                        
                         // 如果用户没有提供日期，只更新标题和描述
                         if (empty($created_at)) {
                             $stmt = $pdo->prepare("UPDATE albums SET title = ?, description = ? WHERE id = ?");
@@ -97,9 +144,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $stmt->execute([$title, $description, $formatted_date, $id]);
                             }
                         }
+                        
+                        // 获取更新后的数据
+                        $stmt = $pdo->prepare("SELECT * FROM albums WHERE id = ?");
+                        $stmt->execute([$id]);
+                        $after_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        // 记录操作日志
+                        $changes = [];
+                        if ($before_data['title'] !== $title) {
+                            $changes[] = "标题从「{$before_data['title']}」改为「{$title}」";
+                        }
+                        if ($before_data['description'] !== $description) {
+                            $changes[] = "描述从「{$before_data['description']}」改为「{$description}」";
+                        }
+                        if (!empty($created_at) && $before_data['created_at'] !== $after_data['created_at']) {
+                            $changes[] = "创建时间从「{$before_data['created_at']}」改为「{$after_data['created_at']}」";
+                        }
+                        
+                        $change_desc = empty($changes) ? '更新了相册信息' : '更新了相册：' . implode('，', $changes);
+                        
+                        $logger->logAlbumOperation(
+                            $current_user, 
+                            $current_username, 
+                            'update', 
+                            $id, 
+                            $title, 
+                            $change_desc,
+                            $before_data,
+                            $after_data
+                        );
+                        
                         $message = $t['album_updated'];
                         $message_type = 'success';
                     } catch (PDOException $e) {
+                        // 记录失败日志
+                        $logger->logAlbumOperation(
+                            $current_user, 
+                            $current_username, 
+                            'update', 
+                            $id, 
+                            $title, 
+                            '更新相册失败', 
+                            null, 
+                            null, 
+                            'failed', 
+                            $e->getMessage()
+                        );
+                        
                         $message = "Error: " . $e->getMessage();
                         $message_type = 'error';
                     }
@@ -110,6 +202,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $id = $_POST['id'];
                 if (!empty($id)) {
                     try {
+                        // 获取删除前的数据
+                        $stmt = $pdo->prepare("SELECT * FROM albums WHERE id = ?");
+                        $stmt->execute([$id]);
+                        $album_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if (!$album_data) {
+                            $message = "相册不存在";
+                            $message_type = 'error';
+                            break;
+                        }
+                        
+                        // 获取相册中的照片数量
+                        $stmt = $pdo->prepare("SELECT COUNT(*) as photo_count FROM photos WHERE album_id = ?");
+                        $stmt->execute([$id]);
+                        $photo_count = $stmt->fetchColumn();
+                        
                         // 先删除相册中的所有照片
                         $stmt = $pdo->prepare("DELETE FROM photos WHERE album_id = ?");
                         $stmt->execute([$id]);
@@ -118,9 +226,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt = $pdo->prepare("DELETE FROM albums WHERE id = ?");
                         $stmt->execute([$id]);
                         
+                        // 记录操作日志
+                        $delete_desc = "删除了相册「{$album_data['title']}」" . 
+                                      ($photo_count > 0 ? "，同时删除了{$photo_count}张照片" : "");
+                        
+                        $logger->logAlbumOperation(
+                            $current_user, 
+                            $current_username, 
+                            'delete', 
+                            $id, 
+                            $album_data['title'], 
+                            $delete_desc,
+                            $album_data,
+                            null
+                        );
+                        
                         $message = $t['album_deleted'];
                         $message_type = 'success';
                     } catch (PDOException $e) {
+                        // 记录失败日志
+                        $logger->logAlbumOperation(
+                            $current_user, 
+                            $current_username, 
+                            'delete', 
+                            $id, 
+                            '未知相册', 
+                            '删除相册失败', 
+                            null, 
+                            null, 
+                            'failed', 
+                            $e->getMessage()
+                        );
+                        
                         $message = "Error: " . $e->getMessage();
                         $message_type = 'error';
                     }
@@ -128,6 +265,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
         }
     }
+}
+
+// 记录访问相册管理页面的操作
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $logger->logSystemOperation($current_user, $current_username, 'view', '访问相册管理页面');
 }
 
 // 分页和搜索参数
