@@ -123,6 +123,28 @@ class UserActivityLogger {
     }
     
     /**
+     * 记录下载照片
+     */
+    public function logDownloadPhoto($user_email, $user_name, $photo_id, $photo_name = '', $album_name = '') {
+        $description = "下载照片";
+        if ($album_name) {
+            $description .= " ({$album_name})";
+        }
+        if ($photo_name) {
+            $description .= ": {$photo_name}";
+        } else {
+            $description .= " ID#{$photo_id}";
+        }
+        
+        $this->log($user_email, $user_name, 'download_photo', $description, [
+            'target_type' => 'photo',
+            'target_id' => $photo_id,
+            'target_name' => $photo_name,
+            'additional_data' => ['album_name' => $album_name]
+        ]);
+    }
+    
+    /**
      * 记录搜索操作
      */
     public function logSearch($user_email, $user_name, $search_query, $search_type = 'general') {

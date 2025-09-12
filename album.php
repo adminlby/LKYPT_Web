@@ -212,6 +212,16 @@ try {
             margin-bottom: 8px;
         }
         
+        .album-title a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        .album-title a:hover {
+            opacity: 0.8;
+        }
+        
         .album-description {
             font-size: 1em;
             opacity: 0.9;
@@ -238,11 +248,18 @@ try {
             background: #f8f9fa;
             border-radius: 8px;
             overflow: hidden;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
         .photo-item:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        .photo-item a {
+            display: block;
+            text-decoration: none;
+            color: inherit;
         }
         
         .photo-img {
@@ -364,7 +381,11 @@ try {
                                          class="album-cover-photo">
                                 <?php endif; ?>
                                 <div class="album-header-content">
-                                    <div class="album-title"><?php echo htmlspecialchars($album['title']); ?></div>
+                                    <div class="album-title">
+                                        <a href="album-detail.php?id=<?php echo $album['id']; ?>&lang=<?php echo $current_lang; ?>">
+                                            <?php echo htmlspecialchars($album['title']); ?>
+                                        </a>
+                                    </div>
                                     <?php if (!empty($album['description'])): ?>
                                         <div class="album-description"><?php echo htmlspecialchars($album['description']); ?></div>
                                     <?php endif; ?>
@@ -380,7 +401,9 @@ try {
                                     <div class="photo-grid">
                                         <?php foreach ($album['photos'] as $photo): ?>
                                             <div class="photo-item">
-                                                <img src="<?php echo htmlspecialchars($photo['url']); ?>" alt="Photo" class="photo-img">
+                                                <a href="photo-detail.php?id=<?php echo $photo['id']; ?>&lang=<?php echo $current_lang; ?>">
+                                                    <img src="<?php echo htmlspecialchars($photo['url']); ?>" alt="Photo" class="photo-img">
+                                                </a>
                                                 <div class="photo-info">
                                                     <?php if (!empty($photo['uploader'])): ?>
                                                         <div class="photo-uploader"><?php echo htmlspecialchars($photo['uploader']); ?></div>

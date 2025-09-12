@@ -232,6 +232,7 @@ $action_stats = $stats_stmt->fetchAll(PDO::FETCH_ASSOC);
         .action-view_album { background: #17a2b8; }
         .action-view_photo { background: #fd7e14; }
         .action-upload_photo { background: #20c997; }
+        .action-download_photo { background: #ffc107; color: #212529; }
         .action-page_view { background: #6f42c1; }
         .action-search { background: #e83e8c; }
 
@@ -345,6 +346,7 @@ $action_stats = $stats_stmt->fetchAll(PDO::FETCH_ASSOC);
                         <option value="view_album" <?php echo $search_action === 'view_album' ? 'selected' : ''; ?>>View Album</option>
                         <option value="view_photo" <?php echo $search_action === 'view_photo' ? 'selected' : ''; ?>>View Photo</option>
                         <option value="upload_photo" <?php echo $search_action === 'upload_photo' ? 'selected' : ''; ?>>Upload Photo</option>
+                        <option value="download_photo" <?php echo $search_action === 'download_photo' ? 'selected' : ''; ?>>Download Photo</option>
                         <option value="page_view" <?php echo $search_action === 'page_view' ? 'selected' : ''; ?>>Page View</option>
                         <option value="search" <?php echo $search_action === 'search' ? 'selected' : ''; ?>>Search</option>
                     </select>
