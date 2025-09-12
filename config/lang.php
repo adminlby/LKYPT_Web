@@ -147,6 +147,15 @@ $langs = [
     'cover_photo' => '封面照片',
     'no_cover' => '無封面',
     'cover_set_success' => '封面設置成功',
+    // 批量操作
+    'select_all' => '全選',
+    'batch_delete' => '批量刪除',
+    'selected_items' => '項已選擇',
+    'confirm_batch_delete' => '確定要刪除選中的照片嗎？此操作不可逆！',
+    'no_items_selected' => '請選擇要操作的項目',
+    'batch_delete_success' => '成功刪除 %d 張照片',
+    'batch_delete_partial' => '成功刪除 %d 張照片，%d 張失敗',
+    'batch_delete_failed' => '批量刪除失敗',
     // 用戶管理
     'user_management' => '用戶管理',
     'banned_users' => '被封禁用戶',
@@ -367,6 +376,15 @@ $langs = [
     'cover_photo' => 'Cover Photo',
     'no_cover' => 'No Cover',
     'cover_set_success' => 'Cover photo set successfully',
+    // Batch Operations
+    'select_all' => 'Select All',
+    'batch_delete' => 'Batch Delete',
+    'selected_items' => 'selected',
+    'confirm_batch_delete' => 'Are you sure you want to delete the selected photos? This action cannot be undone!',
+    'no_items_selected' => 'Please select items to operate',
+    'batch_delete_success' => 'Successfully deleted %d photos',
+    'batch_delete_partial' => 'Successfully deleted %d photos, %d failed',
+    'batch_delete_failed' => 'Batch delete failed',
     // User Management
     'user_management' => 'User Management',
     'banned_users' => 'Banned Users',

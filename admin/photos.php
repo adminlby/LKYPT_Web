@@ -286,6 +286,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 break;
+                
+            case 'batch_delete':
+                if (isset($_POST['photo_ids']) && is_array($_POST['photo_ids'])) {
+                    $deleted_count = 0;
+                    $failed_count = 0;
+                    $failed_photos = [];
+                    
+                    foreach ($_POST['photo_ids'] as $photo_id) {
+                        $photo_id = intval($photo_id);
+                        if ($photo_id <= 0) continue;
+                        
+                        try {
+                            // 获取照片信息
+                            $stmt = $pdo->prepare("SELECT url, album_id FROM photos WHERE id = ?");
+                            $stmt->execute([$photo_id]);
+                            $photo = $stmt->fetch();
+                            
+                            if ($photo) {
+                                $photo_filename = basename($photo['url']);
+                                
+                                // 删除文件
+                                if (file_exists($photo['url'])) {
+                                    unlink($photo['url']);
+                                }
+                                
+                                // 从数据库删除
+                                $stmt = $pdo->prepare("DELETE FROM photos WHERE id = ?");
+                                $stmt->execute([$photo_id]);
+                                
+                                // 记录删除操作日志
+                                $logger->logPhotoOperation(
+                                    $current_user, 
+                                    $current_username, 
+                                    'delete', 
+                                    $photo_id, 
+                                    $photo_filename, 
+                                    '批量删除照片操作',
+                                    $photo['album_id'],
+                                    null
+                                );
+                                
+                                $deleted_count++;
+                            } else {
+                                $failed_photos[] = "ID #{$photo_id}";
+                                $failed_count++;
+                            }
+                            
+                        } catch (Exception $e) {
+                            // 记录失败日志
+                            $logger->logPhotoOperation(
+                                $current_user, 
+                                $current_username, 
+                                'delete', 
+                                $photo_id, 
+                                '未知照片', 
+                                '批量删除照片失败', 
+                                null, 
+                                null, 
+                                'failed', 
+                                $e->getMessage()
+                            );
+                            
+                            $failed_photos[] = "ID #{$photo_id}";
+                            $failed_count++;
+                        }
+                    }
+                    
+                    // 设置消息
+                    if ($deleted_count > 0 && $failed_count == 0) {
+                        $message = sprintf($t['batch_delete_success'], $deleted_count);
+                        $message_type = 'success';
+                    } elseif ($deleted_count > 0 && $failed_count > 0) {
+                        $message = sprintf($t['batch_delete_partial'], $deleted_count, $failed_count);
+                        $message_type = 'warning';
+                    } else {
+                        $message = $t['batch_delete_failed'] . ($failed_count > 0 ? "，失败数量：{$failed_count}" : "");
+                        $message_type = 'error';
+                    }
+                } else {
+                    $message = $t['no_items_selected'];
+                    $message_type = 'error';
+                }
+                break;
         }
     }
 }
@@ -708,10 +791,75 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease;
+            position: relative;
         }
 
         .photo-card:hover {
             transform: translateY(-2px);
+        }
+
+        .photo-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        .photo-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        /* 批量操作工具栏 */
+        .batch-operations {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .batch-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .select-all-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+
+        .selected-count {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        #batch-delete-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         .photo-image {
@@ -1095,12 +1243,34 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <!-- 照片网格 -->
             <?php if (count($photos) > 0): ?>
+                <!-- 批量操作工具栏 -->
+                <div class="batch-operations">
+                    <div class="batch-controls">
+                        <label class="select-all-container">
+                            <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                            <span class="checkmark"></span>
+                            <span class="select-text"><?php echo $t['select_all']; ?></span>
+                        </label>
+                        <span class="selected-count">
+                            <span id="selected-count">0</span> <?php echo $t['selected_items']; ?>
+                        </span>
+                    </div>
+                    <div class="batch-actions">
+                        <button type="button" class="btn btn-danger" onclick="batchDelete()" id="batch-delete-btn" disabled>
+                            🗑️ <?php echo $t['batch_delete']; ?>
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="photos-grid">
                     <?php foreach ($photos as $photo): ?>
                         <div class="photo-card">
+                            <div class="photo-checkbox">
+                                <input type="checkbox" class="photo-select" value="<?php echo $photo['id']; ?>" onchange="updateSelectedCount()">
+                            </div>
                             <img src="<?php echo htmlspecialchars($photo['url']); ?>" 
                                  alt="Photo" class="photo-image" 
-                                 onclick="viewPhoto('<?php echo addslashes($photo['url']); ?>', '<?php echo addslashes(basename($photo['url'])); ?>', '<?php echo addslashes($photo['uploader']); ?>', '<?php echo date('Y-m-d H:i:s', strtotime($photo['uploaded_at'])); ?>', '<?php echo addslashes($photo['album_title'] ?? $t['no_album_selected']); ?>')">
+                                 onclick="viewPhoto('<?php echo addslashes($photo['url']); ?>', '<?php echo addslashes(basename($photo['url'])); ?>', '<?php echo addslashes($photo['uploader']); ?>', '<?php echo date('Y-m-d H:i:s', strtotime($photo['uploaded_at'])); ?>', '<?php echo addslashes($photo['album_title'] ?? $t['no_album_selected']); ?>')">>
                             <div class="photo-info">
                                 <div class="photo-title"><?php echo htmlspecialchars(basename($photo['url'])); ?></div>
                                 
@@ -1554,6 +1724,81 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <input type="hidden" name="photo_id" value="${photoId}">
                     <input type="hidden" name="album_id" value="${albumId}">
                 `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // 批量操作相关函数
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const photoCheckboxes = document.querySelectorAll('.photo-select');
+            
+            photoCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const photoCheckboxes = document.querySelectorAll('.photo-select');
+            const selectedCheckboxes = document.querySelectorAll('.photo-select:checked');
+            const selectAllCheckbox = document.getElementById('select-all');
+            const selectedCountElement = document.getElementById('selected-count');
+            const batchDeleteBtn = document.getElementById('batch-delete-btn');
+            
+            const selectedCount = selectedCheckboxes.length;
+            const totalCount = photoCheckboxes.length;
+            
+            // 更新选择计数
+            selectedCountElement.textContent = selectedCount;
+            
+            // 更新全选复选框状态
+            if (selectedCount === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (selectedCount === totalCount) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.indeterminate = true;
+                selectAllCheckbox.checked = false;
+            }
+            
+            // 更新批量删除按钮状态
+            batchDeleteBtn.disabled = selectedCount === 0;
+        }
+
+        function batchDelete() {
+            const selectedCheckboxes = document.querySelectorAll('.photo-select:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('<?php echo $t["no_items_selected"]; ?>');
+                return;
+            }
+            
+            const confirmMessage = '<?php echo $t["confirm_batch_delete"]; ?>';
+            
+            if (confirm(confirmMessage)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '';
+                
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'batch_delete';
+                form.appendChild(actionInput);
+                
+                selectedCheckboxes.forEach(checkbox => {
+                    const photoIdInput = document.createElement('input');
+                    photoIdInput.type = 'hidden';
+                    photoIdInput.name = 'photo_ids[]';
+                    photoIdInput.value = checkbox.value;
+                    form.appendChild(photoIdInput);
+                });
+                
                 document.body.appendChild(form);
                 form.submit();
             }
