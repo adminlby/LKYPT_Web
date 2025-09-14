@@ -1,21 +1,21 @@
 <?php
-// 使用页面保护中间件（包含登录检查和封禁检查）
+// 使用頁面保護中間件（包含登入檢查和封禁檢查）
 require_once __DIR__ . '/config/page_protection.php';
 
-// 获取相册ID
+// 獲取相冊ID
 $album_id = $_GET['id'] ?? null;
 if (!$album_id || !is_numeric($album_id)) {
     header('Location: album.php?lang=' . $current_lang);
     exit();
 }
 
-// 获取相册详细信息
+// 獲取相冊詳細資訊
 $album = null;
 $photos = [];
 $total_photos = 0;
 
 try {
-    // 获取相册信息
+    // 獲取相冊資訊
     $stmt = $pdo->prepare('
         SELECT a.*, 
                cp.url as cover_photo_url,
@@ -32,19 +32,19 @@ try {
         exit();
     }
     
-    // 获取相册中的所有照片
+    // 獲取相冊中的所有照片
     $photo_stmt = $pdo->prepare('SELECT * FROM photos WHERE album_id = ? ORDER BY uploaded_at DESC');
     $photo_stmt->execute([$album_id]);
     $photos = $photo_stmt->fetchAll();
     $total_photos = count($photos);
     
-    // 如果没有设置封面照片但有照片，使用第一张照片作为封面
+    // 如果沒有設定封面照片但有照片，使用第一張照片作為封面
     if (empty($album['cover_photo_url']) && !empty($photos)) {
         $album['cover_photo_url'] = $photos[0]['url'];
         $album['cover_photo_id'] = $photos[0]['id'];
     }
     
-    // 记录查看相册的活动日志
+    // 記錄查看相冊的活動日誌
     $userActivityLogger->logViewAlbum($user_email, $_SESSION['user']['username'], $album_id, $album['title']);
     
 } catch (PDOException $e) {
@@ -58,7 +58,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($album['title']); ?> - <?php echo $t['album_details'] ?? '相册详情'; ?></title>
+    <title><?php echo htmlspecialchars($album['title']); ?> - <?php echo $t['album_details']; ?></title>
     <style>
         * {
             margin: 0;
@@ -463,10 +463,10 @@ try {
             <a href="index.php?lang=<?php echo $current_lang; ?>" class="navbar-brand">LKYPT</a>
             <div class="navbar-nav">
                 <a href="album.php?lang=<?php echo $current_lang; ?>" class="nav-link">
-                    <?php echo $t['albums'] ?? '相册'; ?>
+                    <?php echo $t['albums']; ?>
                 </a>
                 <a href="logout.php?lang=<?php echo $current_lang; ?>" class="nav-link">
-                    <?php echo $t['logout'] ?? '退出'; ?>
+                    <?php echo $t['logout']; ?>
                 </a>
             </div>
         </div>
@@ -475,22 +475,22 @@ try {
     <div class="container">
         <!-- 返回按钮 -->
         <a href="album.php?lang=<?php echo $current_lang; ?>" class="back-button">
-            ← <?php echo $t['back_to_albums'] ?? '返回相册列表'; ?>
+            ← <?php echo $t['back_to_albums']; ?>
         </a>
 
         <!-- 面包屑导航 -->
         <div class="breadcrumb">
-            <a href="album.php?lang=<?php echo $current_lang; ?>"><?php echo $t['albums'] ?? '相册'; ?></a>
+            <a href="album.php?lang=<?php echo $current_lang; ?>"><?php echo $t['albums']; ?></a>
             / <?php echo htmlspecialchars($album['title']); ?>
         </div>
 
-        <!-- 相册头部信息 -->
+        <!-- 相冊頭部資訊 -->
         <div class="album-header">
             <div class="album-cover">
                 <?php if (!empty($album['cover_photo_url'])): ?>
                     <img src="<?php echo htmlspecialchars($album['cover_photo_url']); ?>" alt="<?php echo htmlspecialchars($album['title']); ?>" class="cover-image">
                 <?php else: ?>
-                    <div class="no-cover">📁 <?php echo $t['no_cover'] ?? '无封面图片'; ?></div>
+                    <div class="no-cover">📁 <?php echo $t['no_cover']; ?></div>
                 <?php endif; ?>
             </div>
             
@@ -505,35 +505,35 @@ try {
                 
                 <div class="album-meta">
                     <div class="meta-item">
-                        <span class="meta-label"><?php echo $t['created_by'] ?? '创建者'; ?></span>
+                        <span class="meta-label"><?php echo $t['created_by']; ?></span>
                         <span class="meta-value"><?php echo htmlspecialchars($album['created_by'] ?? 'Unknown'); ?></span>
                     </div>
                     
                     <div class="meta-item">
-                        <span class="meta-label"><?php echo $t['created_at'] ?? '创建时间'; ?></span>
+                        <span class="meta-label"><?php echo $t['created_at']; ?></span>
                         <span class="meta-value"><?php echo date('Y-m-d H:i:s', strtotime($album['created_at'])); ?></span>
                     </div>
                     
                     <div class="meta-item">
-                        <span class="meta-label"><?php echo $t['last_updated'] ?? '最后更新'; ?></span>
+                        <span class="meta-label"><?php echo $t['last_updated']; ?></span>
                         <span class="meta-value"><?php echo date('Y-m-d H:i:s', strtotime($album['updated_at'])); ?></span>
                     </div>
                     
                     <div class="meta-item">
-                        <span class="meta-label"><?php echo $t['total_photos'] ?? '照片总数'; ?></span>
-                        <span class="meta-value"><?php echo $total_photos; ?> <?php echo $t['photos'] ?? '张'; ?></span>
+                        <span class="meta-label"><?php echo $t['total_photos']; ?></span>
+                        <span class="meta-value"><?php echo $total_photos; ?> <?php echo $t['photos']; ?></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 照片展示区域 -->
+        <!-- 照片展示區域 -->
         <div class="photos-section">
             <div class="section-header">
                 <div>
                     <h2 class="section-title">
-                        🖼️ <?php echo $t['photos_in_album'] ?? '相册中的照片'; ?>
-                        <span class="photo-count"><?php echo $total_photos; ?> <?php echo $t['photos'] ?? '张'; ?></span>
+                        🖼️ <?php echo $t['photos_in_album']; ?>
+                        <span class="photo-count"><?php echo $total_photos; ?> <?php echo $t['photos']; ?></span>
                     </h2>
                 </div>
                 
@@ -549,8 +549,8 @@ try {
             <?php if (empty($photos)): ?>
                 <div class="no-photos">
                     <div class="no-photos-icon">📷</div>
-                    <div class="no-photos-text"><?php echo $t['no_photos_in_album'] ?? '此相册中暂无照片'; ?></div>
-                    <div class="no-photos-subtext"><?php echo $t['upload_photos_hint'] ?? '您可以上传照片到此相册'; ?></div>
+                    <div class="no-photos-text"><?php echo $t['no_photos_in_album']; ?></div>
+                    <div class="no-photos-subtext"><?php echo $t['upload_photos_hint']; ?></div>
                 </div>
             <?php else: ?>
                 <div class="photos-grid" id="photosGrid">
@@ -560,14 +560,14 @@ try {
                         
                         <?php if ($album['cover_photo_id'] == $photo['id']): ?>
                         <div class="cover-badge">
-                            ⭐ <?php echo $t['cover_photo'] ?? '封面'; ?>
+                            ⭐ <?php echo $t['cover_photo']; ?>
                         </div>
                         <?php endif; ?>
                         
                         <div class="photo-overlay">
                             <div class="overlay-content">
                                 <div class="overlay-icon">👁️</div>
-                                <div class="overlay-text"><?php echo $t['view_photo'] ?? '查看照片'; ?></div>
+                                <div class="overlay-text"><?php echo $t['view_photo']; ?></div>
                             </div>
                         </div>
                         

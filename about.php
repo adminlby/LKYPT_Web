@@ -5,6 +5,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>關於我們 | S.K.H. Leung Kwai Yee Secondary School Photography Team</title>
     <style>
+        /* 页面加载动画 */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        
+        .page-loader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loader-camera {
+            font-size: 4rem;
+            color: #ffd700;
+            animation: cameraShutter 2s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes cameraShutter {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            50% { transform: scale(1.2) rotate(0deg); filter: brightness(1.5); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+        
+        .loader-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            animation: textFade 2s ease-in-out infinite;
+        }
+        
+        @keyframes textFade {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        /* 页面内容进入动画 */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: none; /* 初始时不播放动画 */
+        }
+        
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            animation: none;
+        }
+        
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(30px);
+            animation: none;
+        }
+        
+        .fade-in-scale {
+            opacity: 0;
+            transform: scale(0.9);
+            animation: none;
+        }
+        
+        /* 动画激活状态 */
+        .fade-in-up.animate {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        
+        .fade-in-left.animate {
+            animation: fadeInLeft 0.8s ease forwards;
+        }
+        
+        .fade-in-right.animate {
+            animation: fadeInRight 0.8s ease forwards;
+        }
+        
+        .fade-in-scale.animate {
+            animation: fadeInScale 0.8s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInRight {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInScale {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* 延迟动画类 */
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+        .delay-6 { animation-delay: 0.6s; }
+
+        /* 页面切换动画 */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 8888;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        .page-transition.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .transition-camera {
+            font-size: 3rem;
+            color: #ffd700;
+            animation: transitionSpin 1s ease-in-out infinite;
+        }
+        
+        @keyframes transitionSpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        
+        /* 页面内容包装器 */
+        .page-content {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .page-content.show {
+            opacity: 1;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,6 +186,19 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             line-height: 1.6;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('assets/images/lkyss-pt-banner.jpg') center/cover;
+            opacity: 0.1;
+            z-index: -1;
         }
 
         .navbar {
@@ -92,41 +275,82 @@
         .main-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 0 20px;
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('assets/images/lkyss-pt-banner.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            text-align: center;
+            padding: 100px 40px 80px 40px;
+            margin: 40px 20px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .page-header {
-            text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
             color: white;
         }
 
         .page-title {
-            font-size: 3.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 4em;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: #ffd700; /* 后备颜色 */
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        /* 兼容性处理 */
+        @supports not (-webkit-background-clip: text) {
+            .page-title {
+                background: none;
+                color: #ffd700;
+                text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            }
+        }
+        
+        @keyframes titleGlow {
+            0% { filter: drop-shadow(0 0 5px rgba(255,215,0,0.5)); }
+            100% { filter: drop-shadow(0 0 20px rgba(255,140,0,0.8)); }
         }
 
         .page-subtitle {
-            font-size: 1.3em;
-            opacity: 0.9;
+            font-size: 1.4em;
+            opacity: 0.95;
             max-width: 600px;
             margin: 0 auto;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: 300;
         }
 
         .content-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 48px;
             margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .content-section:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
         }
 
         .section-title {
@@ -178,17 +402,36 @@
         }
 
         .stat-item {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            backdrop-filter: blur(10px);
+            padding: 32px 20px;
+            border-radius: 16px;
             text-align: center;
-            border: 2px solid transparent;
+            border: 2px solid rgba(102, 126, 234, 0.2);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
         }
 
         .stat-item:hover {
             border-color: #667eea;
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
+        }
+        
+        .stat-item:hover::before {
+            left: 100%;
         }
 
         .stat-number {
@@ -211,30 +454,131 @@
         }
 
         .team-member {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            backdrop-filter: blur(10px);
+            padding: 36px;
+            border-radius: 20px;
             text-align: center;
-            border: 2px solid transparent;
+            border: 2px solid rgba(102, 126, 234, 0.15);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .team-member::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
         }
 
         .team-member:hover {
             border-color: #667eea;
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            box-shadow: 0 16px 40px rgba(102, 126, 234, 0.2);
+        }
+        
+        .team-member:hover::before {
+            left: 100%;
+        }
+        
+        .team-showcase {
+            margin-bottom: 48px;
+            text-align: center;
+        }
+        
+        .showcase-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .showcase-container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .showcase-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 400px;
+            object-fit: cover;
+        }
+        
+        .showcase-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 40px 32px 32px 32px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .showcase-container:hover .showcase-overlay {
+            transform: translateY(0);
+        }
+        
+        .showcase-text h3 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .showcase-text p {
+            font-size: 1.2em;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+        
+        .showcase-website {
+            font-size: 1em;
+            color: #ff8c00;
+            font-weight: 600;
         }
 
         .member-avatar {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5em;
+            font-size: 3em;
             color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .member-avatar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .team-member:hover .member-avatar::before {
+            transform: translateX(100%);
         }
 
         .member-name {
@@ -309,15 +653,23 @@
             }
 
             .main-container {
-                padding: 20px 15px;
+                padding: 0 15px;
+            }
+            
+            .hero-section {
+                padding: 60px 20px 50px 20px;
+                margin: 20px 15px;
+                background-attachment: scroll;
+                min-height: 300px;
             }
 
             .page-title {
-                font-size: 2.5em;
+                font-size: 2.8em;
             }
 
             .content-section {
-                padding: 25px;
+                padding: 32px 24px;
+                margin-bottom: 30px;
             }
 
             .section-title {
@@ -326,10 +678,39 @@
 
             .team-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .stat-item {
+                padding: 24px 16px;
+            }
+            
+            .team-member {
+                padding: 28px 20px;
+            }
+            
+            .showcase-image {
+                max-height: 250px;
+            }
+            
+            .showcase-overlay {
+                position: static;
+                transform: none;
+                background: rgba(0,0,0,0.8);
+                padding: 24px 20px;
+            }
+            
+            .showcase-text h3 {
+                font-size: 1.5em;
+            }
+            
+            .showcase-text p {
+                font-size: 1em;
             }
         }
 
@@ -349,6 +730,17 @@
     </style>
 </head>
 <body>
+    <!-- 页面加载器 -->
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-camera">📸</div>
+        <div class="loader-text">LKYSS Photography Team</div>
+    </div>
+    
+    <!-- 页面切换动画 -->
+    <div class="page-transition" id="pageTransition">
+        <div class="transition-camera">📸</div>
+    </div>
+
     <?php
     // 确保已启动 session
     if (session_status() === PHP_SESSION_NONE) {
@@ -369,15 +761,17 @@
     $t = $langs[$current_lang];
     ?>
 
+    <!-- 页面内容 -->
+    <div class="page-content" id="pageContent">
     <!-- 导航栏 -->
-    <nav class="navbar">
+    <nav class="navbar fade-in-up delay-1">
         <div class="nav-left">
             <div class="nav-logo"><?php echo $t['team']; ?></div>
             <div class="nav-menu">
-                <a href="index.php?lang=<?php echo $current_lang; ?>"><?php echo $t['home']; ?></a>
-                <a href="album.php?lang=<?php echo $current_lang; ?>"><?php echo $t['album']; ?></a>
-                <a href="about.php?lang=<?php echo $current_lang; ?>" class="active"><?php echo $t['about']; ?></a>
-                <a href="help.php?lang=<?php echo $current_lang; ?>"><?php echo $t['help']; ?></a>
+                <a href="index.php?lang=<?php echo $current_lang; ?>" class="nav-link"><?php echo $t['home']; ?></a>
+                <a href="album.php?lang=<?php echo $current_lang; ?>" class="nav-link"><?php echo $t['album']; ?></a>
+                <a href="about.php?lang=<?php echo $current_lang; ?>" class="active nav-link"><?php echo $t['about']; ?></a>
+                <a href="help.php?lang=<?php echo $current_lang; ?>" class="nav-link"><?php echo $t['help']; ?></a>
             </div>
         </div>
         <div class="nav-actions">
@@ -412,15 +806,17 @@
         </div>
     </nav>
 
-    <div class="main-container">
-        <!-- 页面标题 -->
+    <!-- 英雄区块 -->
+    <div class="hero-section fade-in-scale delay-2">
         <div class="page-header">
-            <h1 class="page-title"><?php echo $t['about_title']; ?></h1>
-            <p class="page-subtitle"><?php echo $t['about_subtitle']; ?></p>
+            <h1 class="page-title fade-in-up delay-3">LKYSS Photography Team</h1>
+            <p class="page-subtitle fade-in-up delay-4">Capturing Moments, Creating Memories<br><?php echo $t['about_subtitle']; ?></p>
         </div>
-
+    </div>
+    
+    <div class="main-container">
         <!-- 学校介绍 -->
-        <div class="content-section">
+        <div class="content-section fade-in-up delay-5">
             <h2 class="section-title"><?php echo $t['school_intro_title']; ?></h2>
             <div class="section-content">
                 <p><?php echo $t['school_intro_content']; ?></p>
@@ -432,26 +828,45 @@
             </div>
         </div>
 
+        <!-- 团队宣传展示区域 -->
+        <div class="content-section fade-in-left delay-3" style="padding: 0; background: transparent; box-shadow: none;">
+            <div class="team-showcase">
+                <h2 class="section-title fade-in-up delay-4" style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 40px;">
+                    🎨 <?php echo $current_lang === 'zh-HK' ? '團隊風采' : 'Team Showcase'; ?>
+                </h2>
+                <div class="showcase-container fade-in-scale delay-5">
+                    <img src="assets/images/lkyss-pt-banner.jpg" alt="LKYSS Photography Team Showcase" class="showcase-image">
+                    <div class="showcase-overlay">
+                        <div class="showcase-text">
+                            <h3>LKYSS Photography Team</h3>
+                            <p><?php echo $current_lang === 'zh-HK' ? '記錄美好瞬間，分享精彩時光' : 'Capturing Moments, Creating Memories'; ?></p>
+                            <span class="showcase-website">lkypt.lbynb.top</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 摄影队介绍 -->
-        <div class="content-section">
+        <div class="content-section fade-in-right delay-6">
             <h2 class="section-title"><?php echo $t['team_intro_title']; ?></h2>
             <div class="section-content">
                 <p><?php echo $t['team_intro_content']; ?></p>
                 
                 <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">2019</div>
+                    <div class="stat-item fade-in-up delay-1">
+                        <div class="stat-number">2016</div>
                         <div class="stat-label"><?php echo $t['founded_year']; ?></div>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item fade-in-up delay-2">
                         <div class="stat-number">15+</div>
                         <div class="stat-label"><?php echo $t['active_members']; ?></div>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item fade-in-up delay-3">
                         <div class="stat-number">4500+</div>
                         <div class="stat-label"><?php echo $t['photos_captured']; ?></div>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item fade-in-up delay-4">
                         <div class="stat-number">80+</div>
                         <div class="stat-label"><?php echo $t['events_covered']; ?></div>
                     </div>
@@ -460,7 +875,7 @@
         </div>
 
         <!-- 团队成员 -->
-        <div class="content-section">
+        <div class="content-section fade-in-left delay-6">
             <h2 class="section-title"><?php echo $t['team_members_title']; ?></h2>
             <div class="team-grid">
                 <div class="team-member">
@@ -471,14 +886,14 @@
                 </div>
                 
                 <div class="team-member">
-                    <div class="member-avatar">📝</div>
+                    <div class="member-avatar">🎥</div>
                     <div class="member-name"><?php echo $t['leader1_name']; ?></div>
                     <div class="member-role"><?php echo $t['leader1_role']; ?></div>
                     <div class="member-description"><?php echo $t['leader1_description']; ?></div>
                 </div>
                 
                 <div class="team-member">
-                    <div class="member-avatar">📝</div>
+                    <div class="member-avatar">🎨</div>
                     <div class="member-name"><?php echo $t['leader2_name']; ?></div>
                     <div class="member-role"><?php echo $t['leader2_role']; ?></div>
                     <div class="member-description"><?php echo $t['leader2_description']; ?></div>
@@ -494,7 +909,7 @@
         </div>
 
         <!-- 技术信息 -->
-        <div class="content-section">
+        <div class="content-section fade-in-up delay-6">
             <h2 class="section-title"><?php echo $t['tech_info_title']; ?></h2>
             <div class="section-content">
                 <p><?php echo $t['tech_info_content']; ?></p>
@@ -534,9 +949,11 @@
             </div>
         </div>
     </div>
+    </div>
+    <!-- 页面内容结束 -->
 
     <!-- 页脚 -->
-    <footer class="footer">
+    <footer class="footer fade-in-up delay-6">
         <div class="footer-content">
             <p><?php echo $t['footer_text']; ?></p>
             <p><?php echo $t['slogan']; ?></p>
@@ -545,5 +962,86 @@
 
     <!-- 包含协议检查组件 -->
     <?php include 'components/agreement_checker.php'; ?>
+
+    <script>
+        // 页面加载完成后执行
+        window.addEventListener('load', function() {
+            // 延迟隐藏加载器，让用户看到加载动画
+            setTimeout(function() {
+                const loader = document.getElementById('pageLoader');
+                if (loader) {
+                    loader.classList.add('fade-out');
+                    // 加载器完全隐藏后移除元素并启动内容动画
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                        // 启动页面内容动画
+                        startContentAnimations();
+                    }, 800);
+                }
+            }, 1500); // 1.5秒后开始隐藏
+        });
+
+        // 启动内容动画
+        function startContentAnimations() {
+            // 显示页面内容
+            const pageContent = document.getElementById('pageContent');
+            if (pageContent) {
+                pageContent.classList.add('show');
+            }
+            
+            // 启动各个元素的动画
+            const animateElements = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right, .fade-in-scale');
+            animateElements.forEach(function(element, index) {
+                setTimeout(function() {
+                    element.classList.add('animate');
+                }, index * 100); // 每个元素延迟100ms
+            });
+        }
+
+        // 页面切换功能
+        function transitionToPage(url) {
+            const transition = document.getElementById('pageTransition');
+            if (transition) {
+                transition.classList.add('active');
+                setTimeout(function() {
+                    window.location.href = url;
+                }, 500);
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        // 为所有导航链接添加页面切换效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('href');
+                    transitionToPage(url);
+                });
+            });
+        });
+
+        // 监听浏览器后退按钮
+        window.addEventListener('popstate', function(e) {
+            const transition = document.getElementById('pageTransition');
+            if (transition) {
+                transition.classList.add('active');
+            }
+        });
+
+        // 页面可见性改变时的处理
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                const transition = document.getElementById('pageTransition');
+                if (transition && transition.classList.contains('active')) {
+                    setTimeout(function() {
+                        transition.classList.remove('active');
+                    }, 100);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
