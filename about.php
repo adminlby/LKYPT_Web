@@ -905,6 +905,20 @@
                     <div class="member-role"><?php echo $t['webmaster_role']; ?></div>
                     <div class="member-description"><?php echo $t['webmaster_description']; ?></div>
                 </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">📸</div>
+                    <div class="member-name"><?php echo $t['member3_name']; ?></div>
+                    <div class="member-role"><?php echo $t['member3_role']; ?></div>
+                    <div class="member-description"><?php echo $t['member3_description']; ?></div>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">🌄</div>
+                    <div class="member-name"><?php echo $t['member4_name']; ?></div>
+                    <div class="member-role"><?php echo $t['member4_role']; ?></div>
+                    <div class="member-description"><?php echo $t['member4_description']; ?></div>
+                </div>
             </div>
         </div>
 

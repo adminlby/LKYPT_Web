@@ -673,14 +673,28 @@
                     <div class="member-icon">📝</div>
                     <div class="member-info">
                         <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '隊長 / 網站管理員' : 'Captain / Web Admin'; ?></div>
-                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '劉濱源' : 'LIU Bonny'; ?></div>
+                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '劉濱源 (4C 18)' : 'LIU Bonny (4C 18)'; ?></div>
                     </div>
                 </div>
                 <div class="team-member fade-in-up delay-3">
                     <div class="member-icon">📷</div>
                     <div class="member-info">
                         <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '隊長' : 'Captain'; ?></div>
-                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '吳釗航' : 'Wu Chiu Hong'; ?></div>
+                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '吳釗航 (4D 19)' : 'Wu Chiu Hong (4D 19)'; ?></div>
+                    </div>
+                </div>
+                <div class="team-member fade-in-up delay-4">
+                    <div class="member-icon">📸</div>
+                    <div class="member-info">
+                        <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '隊員' : 'Team Member'; ?></div>
+                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '陳永添 (6D 02)' : 'CHAN Wing Tim (6D 02)'; ?></div>
+                    </div>
+                </div>
+                <div class="team-member fade-in-up delay-5">
+                    <div class="member-icon">🌄</div>
+                    <div class="member-info">
+                        <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '隊員' : 'Team Member'; ?></div>
+                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '吳臻榮 (6B 15)' : 'NG Chun Wing (6B 15)'; ?></div>
                     </div>
                 </div>
             </div>
