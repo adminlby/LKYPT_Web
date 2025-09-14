@@ -247,6 +247,8 @@ $langs = [
     'view_album' => '查看相冊',
     'download_success' => '下載成功',
     'download_failed' => '下載失敗',
+    'showing_recent_photos' => '顯示最近8張照片',
+    'view_all_photos' => '查看所有照片',
     // 關於頁面
     'about_title' => '關於我們',
     'about_subtitle' => '了解聖公會梁季彜中學攝影隊的故事與使命',
@@ -609,6 +611,8 @@ $langs = [
     'view_album' => 'View Album',
     'download_success' => 'Download successful',
     'download_failed' => 'Download failed',
+    'showing_recent_photos' => 'Showing recent 8 photos',
+    'view_all_photos' => 'View all photos',
     // About Page
     'about_title' => 'About Us',
     'about_subtitle' => 'Learn about the story and mission of S.K.H. Leung Kwai Yee Secondary School Photography Team',

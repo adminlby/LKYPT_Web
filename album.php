@@ -29,9 +29,15 @@ try {
     foreach ($albums_data as $album) {
         $album['photos'] = [];
         try {
-            $photo_stmt = $pdo->prepare('SELECT * FROM photos WHERE album_id = ? ORDER BY uploaded_at DESC');
+            // 獲取前8張照片
+            $photo_stmt = $pdo->prepare('SELECT * FROM photos WHERE album_id = ? ORDER BY uploaded_at DESC LIMIT 8');
             $photo_stmt->execute([$album['id']]);
             $album['photos'] = $photo_stmt->fetchAll();
+            
+            // 獲取總照片數量
+            $count_stmt = $pdo->prepare('SELECT COUNT(*) FROM photos WHERE album_id = ?');
+            $count_stmt->execute([$album['id']]);
+            $album['total_photos'] = $count_stmt->fetchColumn();
             
             // 如果没有设置封面照片但有照片，使用第一张照片作为封面
             if (empty($album['cover_photo_url']) && !empty($album['photos'])) {
@@ -39,6 +45,7 @@ try {
             }
         } catch (Exception $e) {
             $album['photos'] = [];
+            $album['total_photos'] = 0;
         }
         $albums[] = $album;
     }
@@ -385,7 +392,7 @@ try {
         /* 英雄區樣式 */
         .hero-section {
             height: 30vh;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('assets/images/team-banner.jpg');
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('assets/images/lkyss-pt-banner.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -641,6 +648,34 @@ try {
             border: 1px solid rgba(102, 126, 234, 0.1);
         }
         
+        .photo-count-hint {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+            border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+        }
+        
+        .recent-photos-text {
+            font-size: 0.85em;
+            color: #667eea;
+            margin-right: 10px;
+        }
+        
+        .view-all-link {
+            color: #764ba2;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+        
+        .view-all-link:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+        
         /* 響應式設計 */
         @media (max-width: 768px) {
             .hero-title {
@@ -854,6 +889,34 @@ try {
             border-radius: 8px;
         }
         
+        .photo-count-hint {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .recent-photos-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-right: 10px;
+        }
+        
+        .view-all-link {
+            color: #764ba2;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+        
+        .view-all-link:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+        
         .no-albums {
             text-align: center;
             color: #666;
@@ -1000,6 +1063,14 @@ try {
                                                 </div>
                                             <?php endforeach; ?>
                                         </div>
+                                        <?php if ($album['total_photos'] > 8): ?>
+                                            <div class="photo-count-hint">
+                                                <span class="recent-photos-text"><?php echo $t['showing_recent_photos']; ?></span>
+                                                <a href="album-detail.php?id=<?php echo $album['id']; ?>&lang=<?php echo $current_lang; ?>" class="view-all-link">
+                                                    <?php echo $t['view_all_photos']; ?> (<?php echo $album['total_photos']; ?>)
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
