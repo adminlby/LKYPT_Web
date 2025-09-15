@@ -686,14 +686,14 @@
                 <div class="team-member fade-in-up delay-4">
                     <div class="member-icon">📸</div>
                     <div class="member-info">
-                        <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '隊員' : 'Team Member'; ?></div>
+                        <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '設計＆顧問' : 'Team Member'; ?></div>
                         <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '陳永添 (6D 02)' : 'CHAN Wing Tim (6D 02)'; ?></div>
                     </div>
                 </div>
                 <div class="team-member fade-in-up delay-5">
                     <div class="member-icon">🌄</div>
                     <div class="member-info">
-                        <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '隊員' : 'Team Member'; ?></div>
+                        <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '設計＆顧問' : 'Team Member'; ?></div>
                         <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '吳臻榮 (6B 15)' : 'NG Chun Wing (6B 15)'; ?></div>
                     </div>
                 </div>
