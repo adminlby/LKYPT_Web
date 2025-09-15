@@ -673,7 +673,7 @@
                     <div class="member-icon">📝</div>
                     <div class="member-info">
                         <div class="member-role"><?php echo $current_lang === 'zh-HK' ? '隊長 / 網站管理員' : 'Captain / Web Admin'; ?></div>
-                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '劉濱源 (4C 18)' : 'LIU Bonny (4C 18)'; ?></div>
+                        <div class="member-name"><?php echo $current_lang === 'zh-HK' ? '劉濱源 (4C 13)' : 'LIU Bonny (4C 18)'; ?></div>
                     </div>
                 </div>
                 <div class="team-member fade-in-up delay-3">
