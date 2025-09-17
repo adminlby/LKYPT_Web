@@ -30,8 +30,8 @@ try {
         exit('Photo not found');
     }
     
-    // 检查文件是否存在
-    $file_path = $photo['url'];
+    // 使用original_url下载原图，如果没有则使用url
+    $file_path = $photo['original_url'] ?? $photo['url'];
     
     // 如果是相对路径，转换为绝对路径
     if (!filter_var($file_path, FILTER_VALIDATE_URL)) {
@@ -50,8 +50,8 @@ try {
     );
     
     // 如果是外部URL，重定向
-    if (filter_var($photo['url'], FILTER_VALIDATE_URL)) {
-        header('Location: ' . $photo['url']);
+    if (filter_var($file_path, FILTER_VALIDATE_URL)) {
+        header('Location: ' . $file_path);
         exit;
     }
     

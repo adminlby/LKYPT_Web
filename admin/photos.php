@@ -3,6 +3,7 @@ session_start();
 require_once '../config/config.php';
 require_once '../config/lang.php';
 require_once '../config/OperationLogger.php';
+require_once '../config/WatermarkProcessor.php';
 
 // 检查用户是否登录
 if (!isset($_SESSION['user'])) {
@@ -104,15 +105,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // 生成唯一文件名
                     $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
                     $filename = date('Y-m-d_H-i-s') . '_' . uniqid() . '.' . $ext;
-                    $upload_path = '../uploads/' . $filename;
-                    $url = '/uploads/' . $filename;
+                    $temp_upload_path = '../uploads/temp_' . $filename; // 临时文件路径
                     
-                    // 移动上传的文件
-                    if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+                    // 移动上传的文件到临时位置
+                    if (move_uploaded_file($file['tmp_name'], $temp_upload_path)) {
                         try {
+                            // 初始化水印处理器
+                            $watermarkProcessor = new WatermarkProcessor();
+                            
+                            // 检查水印处理要求
+                            $requirements = $watermarkProcessor->checkRequirements();
+                            if ($requirements !== true) {
+                                unlink($temp_upload_path);
+                                $message = '水印处理环境检查失败: ' . implode(', ', $requirements);
+                                $message_type = 'error';
+                                break;
+                            }
+                            
+                            // 处理图片水印
+                            $watermarkResult = $watermarkProcessor->processImage($temp_upload_path, $filename, $current_username);
+                            
+                            if (!$watermarkResult['success']) {
+                                $message = '水印处理失败: ' . $watermarkResult['error'];
+                                $message_type = 'error';
+                                break;
+                            }
+                            
+                            // 数据库中保存的URL是水印版本的URL（用于预览）
+                            $preview_url = $watermarkResult['watermarked_url'];
+                            $original_url = $watermarkResult['original_url'];
+                            
                             // 保存到数据库
-                            $stmt = $pdo->prepare("INSERT INTO photos (url, uploaded_at, uploader, album_id) VALUES (?, NOW(), ?, ?)");
-                            $stmt->execute([$url, $current_username, $album_id]);
+                            $stmt = $pdo->prepare("INSERT INTO photos (url, original_url, uploaded_at, uploader, album_id) VALUES (?, ?, NOW(), ?, ?)");
+                            $stmt->execute([$preview_url, $original_url, $current_username, $album_id]);
                             $photo_id = $pdo->lastInsertId();
                             
                             // 获取相册信息用于日志
@@ -128,16 +153,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'create', 
                                 $photo_id, 
                                 $filename, 
-                                "上传照片到相册「{$album_title}」",
+                                "上传照片到相册「{$album_title}」(已添加水印)",
                                 null,
-                                ['url' => $url, 'album_id' => $album_id, 'filename' => $filename]
+                                [
+                                    'preview_url' => $preview_url, 
+                                    'original_url' => $original_url,
+                                    'album_id' => $album_id, 
+                                    'filename' => $filename
+                                ]
                             );
                             
-                            $message = !empty($new_album_title) ? $t['album_created_with_photo'] : $t['photo_uploaded'];
+                            $message = (!empty($new_album_title) ? $t['album_created_with_photo'] : $t['photo_uploaded']) . ' (已添加水印)';
                             $message_type = 'success';
                         } catch (PDOException $e) {
-                            // 删除已上传的文件
-                            unlink($upload_path);
+                            // 删除已处理的文件
+                            if (isset($watermarkResult) && $watermarkResult['success']) {
+                                @unlink('../uploads/original/' . $filename);
+                                @unlink('../uploads/watermarked/' . $filename);
+                            }
                             
                             // 记录失败日志
                             $logger->logPhotoOperation(
@@ -146,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'create', 
                                 null, 
                                 $filename, 
-                                '照片上传失败', 
+                                '照片上传失败(数据库错误)', 
                                 null, 
                                 null, 
                                 'failed', 
@@ -238,10 +271,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $photo = $stmt->fetch();
                         
                         if ($photo) {
-                            // 删除文件
-                            $file_path = '../' . ltrim($photo['url'], '/');
-                            if (file_exists($file_path)) {
-                                unlink($file_path);
+                            // 删除水印文件
+                            $watermarked_path = '../' . ltrim($photo['url'], '/');
+                            if (file_exists($watermarked_path)) {
+                                unlink($watermarked_path);
+                            }
+                            
+                            // 删除原图文件
+                            if (!empty($photo['original_url'])) {
+                                $original_path = '../' . ltrim($photo['original_url'], '/');
+                                if (file_exists($original_path)) {
+                                    unlink($original_path);
+                                }
                             }
                             
                             // 从数据库删除
@@ -299,16 +340,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
                         try {
                             // 获取照片信息
-                            $stmt = $pdo->prepare("SELECT url, album_id FROM photos WHERE id = ?");
+                            $stmt = $pdo->prepare("SELECT url, original_url, album_id FROM photos WHERE id = ?");
                             $stmt->execute([$photo_id]);
                             $photo = $stmt->fetch();
                             
                             if ($photo) {
                                 $photo_filename = basename($photo['url']);
                                 
-                                // 删除文件
-                                if (file_exists($photo['url'])) {
-                                    unlink($photo['url']);
+                                // 删除水印文件
+                                $watermarked_path = '../' . ltrim($photo['url'], '/');
+                                if (file_exists($watermarked_path)) {
+                                    unlink($watermarked_path);
+                                }
+                                
+                                // 删除原图文件
+                                if (!empty($photo['original_url'])) {
+                                    $original_path = '../' . ltrim($photo['original_url'], '/');
+                                    if (file_exists($original_path)) {
+                                        unlink($original_path);
+                                    }
                                 }
                                 
                                 // 从数据库删除
