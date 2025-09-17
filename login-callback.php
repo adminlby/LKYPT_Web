@@ -36,13 +36,13 @@ function show_error($msg, $input_email = '', $username = '', $email = '') {
     exit;
 }
 
-$client_id = 'YOUR_CLIENT_ID';
+$client_id = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
 $client_secret = 'YOUR_CLIENT_SECRET';
 $redirect_uri = 'https://lkypt.lbynb.top/login-callback.php';
 
 // 允许的邮箱后缀和邮箱
 $allowed_domains = ['@house.skhlkyss.edu.hk', '@skhlkyss.edu.hk'];
-$allowed_emails = ['liub6696@gmail.com'];
+$allowed_emails = ['YOUR_EMAIL_1', 'YOUR_EMAIL_2'];
 
 if (!isset($_GET['code'])) {
     $input_email = isset($_GET['email']) ? $_GET['email'] : '';
